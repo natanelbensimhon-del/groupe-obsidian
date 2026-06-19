@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.groupe-obsidian.com)",
+      "PowerShell(node -v)",
+      "PowerShell(npm -v)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -TimeoutSec 30; Write-Output \"STATUS: $\\($r.StatusCode\\)\"; if \\($r.Content -match \"GROUPE\"\\) { Write-Output \"OK: hero présent\" }; if \\($r.Content -match \"OBSIDIAN\"\\) { Write-Output \"OK: wordmark présent\" } } catch { Write-Output \"ERREUR: $_\" })",
+      "PowerShell(\"/tertiaire\",\"/optimisation-cee\",\"/obsibat\",\"/apiryon\",\"/contact\",\"/le-groupe\",\"/particuliers\",\"/travaux\" | ForEach-Object { try { $r = Invoke-WebRequest -Uri \"http://localhost:3000$_\" -UseBasicParsing -TimeoutSec 30; Write-Output \"$_ -> $\\($r.StatusCode\\)\" } catch { Write-Output \"$_ -> ERREUR $_\" } })",
+      "mcp__Claude_Preview__preview_start",
+      "PowerShell(try { Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -TimeoutSec 60 | Out-Null; Write-Output \"compiled\" } catch { Write-Output \"warming: $_\" })"
+    ]
+  }
+}
