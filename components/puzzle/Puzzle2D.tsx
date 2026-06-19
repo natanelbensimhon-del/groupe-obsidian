@@ -113,30 +113,39 @@ export function Puzzle2D({
                 />
                 <text
                   x={cx}
-                  y={cy - (lines.length > 1 ? 4 : 0)}
+                  y={cy - (lines.length > 1 ? 6 : 1)}
                   textAnchor="middle"
                   className="font-display"
                   style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    fill: isActive ? accent : "#EDEEF0",
+                    fontSize: 16,
+                    fontWeight: 700,
+                    fill: isActive ? accent : "#F5F6F8",
+                    paintOrder: "stroke",
+                    stroke: "rgba(0,0,0,0.85)",
+                    strokeWidth: 3,
+                    strokeLinejoin: "round",
                     transition: "fill 0.3s",
                   }}
                 >
                   {lines.map((line, li) => (
-                    <tspan key={li} x={cx} dy={li === 0 ? 0 : 15}>
+                    <tspan key={li} x={cx} dy={li === 0 ? 0 : 17}>
                       {line}
                     </tspan>
                   ))}
                 </text>
                 <text
                   x={cx}
-                  y={cy + (lines.length > 1 ? 26 : 18)}
+                  y={cy + (lines.length > 1 ? 30 : 20)}
                   textAnchor="middle"
                   style={{
-                    fontSize: 7.5,
-                    letterSpacing: "0.2em",
-                    fill: isActive ? accent : "#6b7280",
+                    fontSize: 9,
+                    fontWeight: 600,
+                    letterSpacing: "0.22em",
+                    fill: isActive ? accent : "#9aa3b2",
+                    paintOrder: "stroke",
+                    stroke: "rgba(0,0,0,0.7)",
+                    strokeWidth: 2.5,
+                    strokeLinejoin: "round",
                     transition: "fill 0.3s",
                   }}
                 >

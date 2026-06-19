@@ -31,9 +31,9 @@ function useGeometries() {
       const geo = new THREE.ExtrudeGeometry(shape, {
         depth: DEPTH,
         bevelEnabled: true,
-        bevelThickness: 0.05,
-        bevelSize: 0.045,
-        bevelSegments: 2,
+        bevelThickness: 0.028,
+        bevelSize: 0.022,
+        bevelSegments: 1, // biseau net → rendu géométrique
       });
       geo.center();
       return geo;
@@ -138,38 +138,53 @@ function Piece({
       >
         <meshPhysicalMaterial
           ref={mat}
-          color="#13161b"
-          metalness={0.55}
-          roughness={0.28}
+          color="#0e1116"
+          metalness={0.78}
+          roughness={0.18}
           clearcoat={1}
-          clearcoatRoughness={0.35}
-          reflectivity={0.5}
+          clearcoatRoughness={0.22}
+          reflectivity={0.7}
           emissive={accent}
           emissiveIntensity={0.1}
           transparent
           opacity={1}
         />
-        <Edges threshold={15} scale={1.001} color={hovered ? accent : "#3a4250"} />
+        {/* Arêtes néon (rendu futuriste) */}
+        <Edges threshold={12} scale={1.001} color={hovered ? accent : "#56627a"} />
+        <Edges threshold={12} scale={1.04} color={accent} />
+      </mesh>
+
+      {/* halo lumineux discret derrière la pièce au survol */}
+      <mesh position={[0, 0, -DEPTH / 2 - 0.02]} visible={hovered}>
+        <planeGeometry args={[W * 1.25, W * 1.25]} />
+        <meshBasicMaterial
+          color={accent}
+          transparent
+          opacity={0.18}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
       </mesh>
 
       {/* Titre affiché en permanence, centré sur la pièce */}
       <Html
         center
         position={[0, 0, DEPTH / 2 + 0.06]}
-        distanceFactor={7}
+        distanceFactor={5.4}
         zIndexRange={[20, 0]}
         pointerEvents="none"
       >
         <div
           className="select-none text-center"
-          style={{ width: 96, opacity: dimmed ? 0.55 : 1, transition: "opacity .3s" }}
+          style={{ width: 124, opacity: dimmed ? 0.5 : 1, transition: "opacity .3s" }}
         >
           <div
-            className="font-display font-semibold leading-tight"
+            className="font-display font-semibold leading-[1.1]"
             style={{
-              fontSize: 11,
-              letterSpacing: "0.02em",
-              color: hovered ? accent : "#EDEEF0",
+              fontSize: 15,
+              letterSpacing: "0.01em",
+              color: hovered ? accent : "#F5F6F8",
+              textShadow: "0 1px 10px rgba(0,0,0,0.85), 0 0 2px rgba(0,0,0,0.9)",
               transition: "color .3s",
             }}
           >
@@ -177,12 +192,14 @@ function Piece({
           </div>
           <div
             style={{
-              marginTop: 3,
-              fontSize: 7,
-              letterSpacing: "0.22em",
-              color: hovered ? accent : "#6b7280",
+              marginTop: 5,
+              fontSize: 8.5,
+              fontWeight: 600,
+              letterSpacing: "0.24em",
+              color: hovered ? accent : "#9aa3b2",
+              textShadow: "0 1px 6px rgba(0,0,0,0.8)",
               transition: "color .3s, opacity .3s",
-              opacity: hovered ? 1 : 0.7,
+              opacity: hovered ? 1 : 0.85,
             }}
           >
             {hovered ? "EXPLORER →" : piece.index}
@@ -209,9 +226,9 @@ function Board({
     const g = group.current;
     if (!g) return;
     const k = 1 - Math.pow(0.05, delta);
-    // Parallaxe douce (faible, pour garder les titres lisibles).
-    const tx = state.pointer.y * 0.12;
-    const ty = state.pointer.x * 0.16;
+    // Parallaxe très douce (titres bien lisibles).
+    const tx = state.pointer.y * 0.06;
+    const ty = state.pointer.x * 0.09;
     g.rotation.x += (tx - g.rotation.x) * k;
     g.rotation.y += (ty - g.rotation.y) * k;
   });

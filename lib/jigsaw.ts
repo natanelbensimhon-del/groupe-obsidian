@@ -11,19 +11,17 @@ export type Pt = [number, number];
 
 /**
  * Contour d'une pièce centrée sur (0,0), en coordonnées y-vers-le-haut.
- * Les tenons sont des demi-cercles (rendu net et premium).
+ * Les tenons sont ANGULAIRES (trapèzes) pour un rendu géométrique / futuriste.
+ * Les bords de pièces voisines restent strictement complémentaires.
  */
-export function piecePoints(
-  w: number,
-  h: number,
-  s: Signs,
-  knob = 0.22,
-  seg = 16
-): Pt[] {
+export function piecePoints(w: number, h: number, s: Signs, tab = 0.17): Pt[] {
   const pts: Pt[] = [];
-  const r = Math.min(w, h) * knob;
   const hw = w / 2;
   const hh = h / 2;
+  const unit = Math.min(w, h);
+  const base = unit * tab; // demi-largeur du tenon à sa base (le long du bord)
+  const top = base * 0.5; // demi-largeur au sommet → trapèze
+  const depth = unit * tab * 0.95; // profondeur de la saillie
 
   const TL: Pt = [-hw, hh];
   const TR: Pt = [hw, hh];
@@ -37,6 +35,12 @@ export function piecePoints(
     { from: BL, to: TL, tan: [0, 1] as Pt, nor: [-1, 0] as Pt, sign: s.left },
   ];
 
+  const add = (mid: Pt, tan: Pt, nor: Pt, sign: number, t: number, n: number) =>
+    pts.push([
+      mid[0] + tan[0] * t + nor[0] * sign * n,
+      mid[1] + tan[1] * t + nor[1] * sign * n,
+    ]);
+
   pts.push(TL);
   for (const e of edges) {
     if (e.sign === 0) {
@@ -44,15 +48,11 @@ export function piecePoints(
       continue;
     }
     const mid: Pt = [(e.from[0] + e.to[0]) / 2, (e.from[1] + e.to[1]) / 2];
-    for (let i = 0; i <= seg; i++) {
-      const phi = Math.PI - (i / seg) * Math.PI; // PI → 0
-      const t = r * Math.cos(phi); // -r → r (le long du bord)
-      const n = e.sign * r * Math.sin(phi); // bombé selon le signe
-      pts.push([
-        mid[0] + e.tan[0] * t + e.nor[0] * n,
-        mid[1] + e.tan[1] * t + e.nor[1] * n,
-      ]);
-    }
+    // base gauche → sommet gauche → sommet droit → base droite (trapèze)
+    add(mid, e.tan, e.nor, e.sign, -base, 0);
+    add(mid, e.tan, e.nor, e.sign, -top, depth);
+    add(mid, e.tan, e.nor, e.sign, top, depth);
+    add(mid, e.tan, e.nor, e.sign, base, 0);
     pts.push(e.to);
   }
   return pts;
