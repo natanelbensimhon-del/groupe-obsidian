@@ -1,15 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { PUZZLE_PIECES, type PuzzlePiece } from "@/lib/site";
 import { piecePoints, gridSigns, pointsToSvgPath } from "@/lib/jigsaw";
 
-const COLS = 4;
-const ROWS = 2;
 const SCALE = 124;
 const PAD = 46;
+
+// 4×2 par défaut ; 2×4 sur mobile (pièces beaucoup plus grandes).
+const getCols = () =>
+  typeof window !== "undefined" && window.innerWidth < 640 ? 2 : 4;
 
 const ACCENT: Record<PuzzlePiece["accent"], string> = {
   platinum: "#9CC4FF",
@@ -37,6 +39,14 @@ export function Puzzle2D({
 }) {
   const router = useRouter();
   const [active, setActive] = useState<number | null>(null);
+  const [cols, setCols] = useState(getCols);
+  const rows = PUZZLE_PIECES.length / cols;
+
+  useEffect(() => {
+    const onResize = () => setCols(getCols());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const setHover = (i: number | null) => {
     setActive(i);
@@ -44,19 +54,19 @@ export function Puzzle2D({
   };
 
   const pieces = useMemo(() => {
-    const grid = gridSigns(COLS, ROWS).flat();
+    const grid = gridSigns(cols, rows).flat();
     return PUZZLE_PIECES.map((piece, i) => {
-      const c = i % COLS;
-      const r = Math.floor(i / COLS);
+      const c = i % cols;
+      const r = Math.floor(i / cols);
       const cx = PAD + SCALE / 2 + c * SCALE;
       const cy = PAD + SCALE / 2 + r * SCALE;
       const path = pointsToSvgPath(piecePoints(1, 1, grid[i]), SCALE, cx, cy);
       return { piece, cx, cy, path };
     });
-  }, []);
+  }, [cols, rows]);
 
-  const vw = COLS * SCALE + PAD * 2;
-  const vh = ROWS * SCALE + PAD * 2;
+  const vw = cols * SCALE + PAD * 2;
+  const vh = rows * SCALE + PAD * 2;
 
   return (
     <div className="relative mx-auto w-full max-w-[860px]">
