@@ -34,9 +34,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // TODO: brancher l'envoi réel ici (voir commentaire ci-dessus).
-    console.log("[contact] nouvelle demande reçue:", data);
-
+    // RGPD : ne pas journaliser/persister les données personnelles.
+    // Brancher ici l'envoi email (voir commentaire ci-dessus) sans stockage.
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json(

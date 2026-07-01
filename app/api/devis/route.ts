@@ -16,8 +16,10 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    // TODO: envoyer un email à l'équipe avec data (client + configuration + devis).
-    console.log("[devis] nouvelle demande:", data);
+    // RGPD : on ne journalise PAS les données personnelles. Une fois branché,
+    // l'endpoint doit uniquement TRANSMETTRE la demande par email à l'équipe
+    // (Resend/…) sans stockage durable.
+    // TODO: envoyer l'email à l'équipe puis ne rien persister.
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json(

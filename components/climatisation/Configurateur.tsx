@@ -23,12 +23,29 @@ import {
 import { generateDevisPdf, type DevisSim } from "./devisPdf";
 import { cn } from "@/lib/utils";
 
-type Placement = {
+type Slot = {
   photo: string | null;
   pos: { x: number; y: number };
   size: number;
   rot: number;
 };
+type PieceSlot = Slot & { room: string };
+
+const INT_POS = { x: 0.5, y: 0.35 };
+const EXT_POS = { x: 0.5, y: 0.62 };
+const newPiece = (): PieceSlot => ({
+  room: "",
+  photo: null,
+  pos: { ...INT_POS },
+  size: 0.28,
+  rot: 0,
+});
+const newGroupe = (): Slot => ({
+  photo: null,
+  pos: { ...EXT_POS },
+  size: 0.4,
+  rot: 0,
+});
 
 const clamp = (v: number, min: number, max: number) =>
   Math.min(max, Math.max(min, v));
@@ -45,7 +62,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-async function composite(p: Placement, src: string): Promise<DevisSim | null> {
+async function composite(p: Slot, src: string): Promise<DevisSim | null> {
   if (!p.photo) return null;
   const bg = await loadImage(p.photo);
   const maxW = 1200;
@@ -103,6 +120,41 @@ function Choice<T extends string>({
   );
 }
 
+function Counter({
+  value,
+  onDec,
+  onInc,
+  suffix,
+}: {
+  value: number;
+  onDec: () => void;
+  onInc: () => void;
+  suffix?: string;
+}) {
+  return (
+    <div className="flex items-center gap-4">
+      <button
+        onClick={onDec}
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-ash-200 hover:border-white/40"
+        data-cursor="hover"
+      >
+        −
+      </button>
+      <span className="w-6 text-center font-display text-lg text-ash-100">
+        {value}
+      </span>
+      <button
+        onClick={onInc}
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-ash-200 hover:border-white/40"
+        data-cursor="hover"
+      >
+        +
+      </button>
+      {suffix && <span className="text-xs text-ash-400">{suffix}</span>}
+    </div>
+  );
+}
+
 const inputClass =
   "w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-ash-100 placeholder:text-ash-400 outline-none transition-colors focus:border-white/30 focus:bg-white/[0.05]";
 
@@ -110,7 +162,13 @@ export function Configurateur() {
   const [brand, setBrand] = useState<string>(AC_BRANDS[0]);
   const [type, setType] = useState<AcType>("mural");
   const [modelId, setModelId] = useState<string>("");
-  const [quantity, setQuantity] = useState(1);
+
+  const [pieces, setPieces] = useState<PieceSlot[]>([newPiece()]);
+  const [groupes, setGroupes] = useState<Slot[]>([newGroupe()]);
+  const [sel, setSel] = useState<{ kind: "int" | "ext"; index: number }>({
+    kind: "int",
+    index: 0,
+  });
 
   const [dwelling, setDwelling] = useState<Dwelling | null>(null);
   const [wall, setWall] = useState<WallType | null>(null);
@@ -118,22 +176,7 @@ export function Configurateur() {
   const [finish, setFinish] = useState<FinishPref | null>(null);
   const [condensate, setCondensate] = useState<Condensate | null>(null);
 
-  // Deux vues : unité intérieure & unité extérieure
-  const [view, setView] = useState<"int" | "ext">("int");
-  const [interior, setInterior] = useState<Placement>({
-    photo: null,
-    pos: { x: 0.5, y: 0.35 },
-    size: 0.28,
-    rot: 0,
-  });
-  const [exterior, setExterior] = useState<Placement>({
-    photo: null,
-    pos: { x: 0.5, y: 0.62 },
-    size: 0.4,
-    rot: 0,
-  });
   const [downloading, setDownloading] = useState(false);
-
   const [client, setClient] = useState({
     prenom: "",
     nom: "",
@@ -141,6 +184,7 @@ export function Configurateur() {
     email: "",
     adresse: "",
   });
+  const [consent, setConsent] = useState(false);
   const [devisStatus, setDevisStatus] = useState<
     "idle" | "generating" | "done" | "error"
   >("idle");
@@ -160,26 +204,36 @@ export function Configurateur() {
   const unitSrc = model?.unitImage || defaultUnitImage();
   const outdoorSrc = defaultOutdoorImage();
 
+  const nbSplits = pieces.length;
+  const nbGroupes = groupes.length;
+
   const cable = finish
     ? recommendCableRouting(wall ?? "inconnu", outdoor ?? "inconnu", finish)
     : null;
 
-  const active = view === "int" ? interior : exterior;
-  const setActive = (upd: Partial<Placement>) =>
-    (view === "int" ? setInterior : setExterior)((p) => ({ ...p, ...upd }));
-  const activeSrc = view === "int" ? unitSrc : outdoorSrc;
+  const activeArr = sel.kind === "int" ? pieces : groupes;
+  const activeIndex = Math.min(sel.index, activeArr.length - 1);
+  const active = activeArr[activeIndex] as Slot;
+  const activeSrc = sel.kind === "int" ? unitSrc : outdoorSrc;
 
-  const materialTotal = (model?.price ?? 0) * quantity;
-  const poseTotal = POSE_PRICE_PER_UNIT * quantity;
+  const updateActive = (upd: Partial<Slot>) => {
+    if (sel.kind === "int")
+      setPieces((a) => a.map((s, i) => (i === activeIndex ? { ...s, ...upd } : s)));
+    else
+      setGroupes((a) => a.map((s, i) => (i === activeIndex ? { ...s, ...upd } : s)));
+  };
+
+  const materialTotal = (model?.price ?? 0) * nbSplits;
+  const poseTotal = POSE_PRICE_PER_UNIT * nbSplits;
   const grandTotal = materialTotal + poseTotal;
 
   function onFile(file?: File | null) {
     if (!file || !file.type.startsWith("image/")) return;
     const reader = new FileReader();
     reader.onload = () =>
-      setActive({
+      updateActive({
         photo: reader.result as string,
-        pos: view === "int" ? { x: 0.5, y: 0.35 } : { x: 0.5, y: 0.62 },
+        pos: sel.kind === "int" ? { ...INT_POS } : { ...EXT_POS },
       });
     reader.readAsDataURL(file);
   }
@@ -192,7 +246,7 @@ export function Configurateur() {
     const el = containerRef.current;
     if (!dr || !el) return;
     const r = el.getBoundingClientRect();
-    setActive({
+    updateActive({
       pos: {
         x: clamp(dr.bx + (e.clientX - dr.sx) / r.width, 0, 1),
         y: clamp(dr.by + (e.clientY - dr.sy) / r.height, 0, 1),
@@ -210,7 +264,7 @@ export function Configurateur() {
       if (!sim) return;
       const a = document.createElement("a");
       a.href = sim.dataUrl;
-      a.download = `apercu-${view === "int" ? "interieur" : "exterieur"}-${model?.id ?? "obsidian"}.jpg`;
+      a.download = `apercu-${sel.kind === "int" ? "piece" + (activeIndex + 1) : "groupe" + (activeIndex + 1)}.jpg`;
       a.click();
     } finally {
       setDownloading(false);
@@ -220,18 +274,17 @@ export function Configurateur() {
   async function downloadDevis() {
     setDevisError("");
     if (!model) return;
-    if (!client.prenom.trim() || !client.nom.trim()) {
-      setDevisError("Merci d'indiquer votre nom et prénom.");
-      return;
-    }
-    if (!client.tel.trim()) {
-      setDevisError("Merci d'indiquer votre téléphone.");
-      return;
-    }
-    if (!isEmail(client.email)) {
-      setDevisError("Merci d'indiquer un e-mail valide.");
-      return;
-    }
+    if (!client.prenom.trim() || !client.nom.trim())
+      return setDevisError("Merci d'indiquer votre nom et prénom.");
+    if (!client.tel.trim())
+      return setDevisError("Merci d'indiquer votre téléphone.");
+    if (!isEmail(client.email))
+      return setDevisError("Merci d'indiquer un e-mail valide.");
+    if (!consent)
+      return setDevisError(
+        "Merci d'accepter d'être recontacté pour valider votre demande."
+      );
+
     setDevisStatus("generating");
     const now = new Date();
     const pad = (n: number) => String(n).padStart(2, "0");
@@ -246,10 +299,22 @@ export function Configurateur() {
     const dwellingLabel = dwelling ? DWELLING_LABELS[dwelling] : "Non précisé";
 
     try {
-      const [interiorSim, exteriorSim] = await Promise.all([
-        composite(interior, unitSrc),
-        composite(exterior, outdoorSrc),
+      const [pieceSims, groupSims] = await Promise.all([
+        Promise.all(pieces.map((p) => composite(p, unitSrc))),
+        Promise.all(groupes.map((g) => composite(g, outdoorSrc))),
       ]);
+      const sims: { title: string; sim: DevisSim }[] = [];
+      pieceSims.forEach((s, i) => {
+        if (s)
+          sims.push({
+            title: `${pieces[i].room?.trim() || "Pièce " + (i + 1)} — unité intérieure`,
+            sim: s,
+          });
+      });
+      groupSims.forEach((s, i) => {
+        if (s) sims.push({ title: `Groupe extérieur ${i + 1}`, sim: s });
+      });
+
       await generateDevisPdf({
         numero,
         date: dateFr,
@@ -263,15 +328,16 @@ export function Configurateur() {
           powerKw: model.powerKw,
           btu: model.btu,
         },
-        quantity,
+        nbSplits,
+        nbGroupes,
         materialUnit: model.price,
         poseUnit: POSE_PRICE_PER_UNIT,
         cableRouting: cableLabel,
         condensate: condensateLabel,
         tvaRate: TVA_RATE,
-        interiorSim: interiorSim ?? undefined,
-        exteriorSim: exteriorSim ?? undefined,
+        sims,
       });
+
       fetch("/api/devis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -280,7 +346,8 @@ export function Configurateur() {
           type: "Climatisation résidentielle",
           logement: dwellingLabel,
           modele: `${model.brand} ${model.name}`,
-          quantite: quantity,
+          splits: nbSplits,
+          groupes: nbGroupes,
           passageCables: cableLabel,
           condensats: condensateLabel,
           totalEstimatif: grandTotal,
@@ -296,6 +363,22 @@ export function Configurateur() {
 
   const field = (k: keyof typeof client) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setClient((c) => ({ ...c, [k]: e.target.value }));
+
+  // Onglets de placement (pièces + groupes)
+  const tabs = [
+    ...pieces.map((p, i) => ({
+      kind: "int" as const,
+      index: i,
+      label: p.room?.trim() || `Pièce ${i + 1}`,
+      set: !!p.photo,
+    })),
+    ...groupes.map((g, i) => ({
+      kind: "ext" as const,
+      index: i,
+      label: `Groupe ${i + 1}`,
+      set: !!g.photo,
+    })),
+  ];
 
   return (
     <div className="flex flex-col gap-6">
@@ -391,39 +474,40 @@ export function Configurateur() {
               </div>
             )}
             <p className="mt-3 text-[11px] leading-relaxed text-ash-500">
-              Prix publics indicatifs TTC du matériel (unité intérieure + groupe
-              extérieur) — à confirmer selon l&apos;étude technique.
+              Prix publics indicatifs TTC du matériel — à confirmer selon
+              l&apos;étude technique (configuration bi/tri-split).
             </p>
           </div>
 
-          <div>
-            <p className="label mb-3">4 · Nombre d&apos;unités</p>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setQuantity((q) => clamp(q - 1, 1, 8))}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-ash-200 hover:border-white/40"
-                data-cursor="hover"
-              >
-                −
-              </button>
-              <span className="w-6 text-center font-display text-lg text-ash-100">
-                {quantity}
-              </span>
-              <button
-                onClick={() => setQuantity((q) => clamp(q + 1, 1, 8))}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-ash-200 hover:border-white/40"
-                data-cursor="hover"
-              >
-                +
-              </button>
-              <span className="text-xs text-ash-400">
-                {quantity > 1 ? "Multi-split" : "Mono-split"}
-              </span>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="label mb-3">4 · Splits int.</p>
+              <Counter
+                value={nbSplits}
+                onDec={() =>
+                  setPieces((p) => (p.length > 1 ? p.slice(0, -1) : p))
+                }
+                onInc={() =>
+                  setPieces((p) => (p.length < 6 ? [...p, newPiece()] : p))
+                }
+              />
+            </div>
+            <div>
+              <p className="label mb-3">5 · Groupes ext.</p>
+              <Counter
+                value={nbGroupes}
+                onDec={() =>
+                  setGroupes((g) => (g.length > 1 ? g.slice(0, -1) : g))
+                }
+                onInc={() =>
+                  setGroupes((g) => (g.length < 4 ? [...g, newGroupe()] : g))
+                }
+              />
             </div>
           </div>
 
           <div>
-            <p className="label mb-3">5 · Type de logement</p>
+            <p className="label mb-3">6 · Type de logement</p>
             <div className="grid grid-cols-2 gap-2">
               {(["maison", "appartement"] as Dwelling[]).map((dw) => (
                 <button
@@ -443,14 +527,12 @@ export function Configurateur() {
             </div>
           </div>
 
-          {/* 6 · Passage des câbles */}
           <div className="border-t border-white/10 pt-6">
-            <p className="label mb-1">6 · Passage des câbles</p>
+            <p className="label mb-1">7 · Passage des câbles</p>
             <p className="mb-4 text-xs text-ash-400">
               Trois questions simples pour savoir si les câbles peuvent être
               cachés ou passés dans une goulotte discrète.
             </p>
-
             <p className="mb-2 text-xs font-medium text-ash-200">
               Le mur où poser le climatiseur, c&apos;est plutôt&nbsp;?
             </p>
@@ -501,9 +583,8 @@ export function Configurateur() {
             )}
           </div>
 
-          {/* 7 · Évacuation des condensats */}
           <div className="border-t border-white/10 pt-6">
-            <p className="label mb-1">7 · Évacuation de l&apos;eau</p>
+            <p className="label mb-1">8 · Évacuation de l&apos;eau</p>
             <p className="mb-4 text-xs text-ash-400">
               La climatisation produit un peu d&apos;eau (condensats). Comment
               l&apos;évacuer&nbsp;?
@@ -521,37 +602,47 @@ export function Configurateur() {
           </div>
         </div>
 
-        {/* ── Visualiseur (2 vues) ── */}
+        {/* ── Visualiseur multi-pièces ── */}
         <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-obsidian-800/60 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex rounded-full border border-white/10 p-1">
-              {([
-                { id: "int", label: "Unité intérieure" },
-                { id: "ext", label: "Unité extérieure" },
-              ] as const).map((v) => (
+          <p className="label">Placez chaque unité sur une photo</p>
+
+          {/* Onglets pièces / groupes */}
+          <div className="flex flex-wrap gap-2">
+            {tabs.map((t) => {
+              const activeTab = sel.kind === t.kind && activeIndex === t.index;
+              return (
                 <button
-                  key={v.id}
-                  onClick={() => setView(v.id)}
+                  key={`${t.kind}-${t.index}`}
+                  onClick={() => setSel({ kind: t.kind, index: t.index })}
                   data-cursor="hover"
                   className={cn(
-                    "rounded-full px-4 py-1.5 text-xs transition-colors",
-                    view === v.id ? "bg-white/10 text-white" : "text-ash-300"
+                    "flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs transition-colors",
+                    activeTab
+                      ? "border-white/40 bg-white/10 text-white"
+                      : "border-white/10 text-ash-300 hover:border-white/25"
                   )}
                 >
-                  {v.label}
+                  <span
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full",
+                      t.set ? "bg-glow" : "bg-white/20"
+                    )}
+                  />
+                  {t.label}
                 </button>
-              ))}
-            </div>
-            {active.photo && (
-              <button
-                onClick={() => setActive({ photo: null })}
-                className="text-xs text-ash-400 hover:text-white"
-                data-cursor="hover"
-              >
-                Changer de photo
-              </button>
-            )}
+              );
+            })}
           </div>
+
+          {/* Nom de la pièce (unités intérieures) */}
+          {sel.kind === "int" && (
+            <input
+              className={inputClass}
+              placeholder={`Nom de la pièce (ex : Salon, Chambre 1)`}
+              value={(active as PieceSlot).room}
+              onChange={(e) => updateActive({ room: e.target.value } as Partial<Slot>)}
+            />
+          )}
 
           {!active.photo ? (
             <label
@@ -560,7 +651,7 @@ export function Configurateur() {
                 e.preventDefault();
                 onFile(e.dataTransfer.files?.[0]);
               }}
-              className="flex min-h-[320px] cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center transition-colors hover:border-white/30"
+              className="flex min-h-[300px] cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center transition-colors hover:border-white/30"
               data-cursor="hover"
             >
               <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/15 text-ash-300">
@@ -576,12 +667,12 @@ export function Configurateur() {
               </div>
               <div>
                 <p className="text-sm text-ash-100">
-                  {view === "int"
-                    ? "Déposez une photo du mur / de la pièce"
-                    : "Déposez une photo de la façade / emplacement extérieur"}
+                  {sel.kind === "int"
+                    ? "Photo de la pièce / du mur"
+                    : "Photo de la façade / emplacement extérieur"}
                 </p>
                 <p className="mt-1 text-xs text-ash-400">
-                  ou cliquez pour parcourir · JPG, PNG
+                  glissez-déposez ou cliquez · JPG, PNG
                 </p>
               </div>
               <input
@@ -593,13 +684,22 @@ export function Configurateur() {
             </label>
           ) : (
             <>
+              <div className="flex items-center justify-end">
+                <button
+                  onClick={() => updateActive({ photo: null })}
+                  className="text-xs text-ash-400 hover:text-white"
+                  data-cursor="hover"
+                >
+                  Changer de photo
+                </button>
+              </div>
               <div
                 ref={containerRef}
                 className="relative select-none overflow-hidden rounded-xl border border-white/10"
                 style={{ touchAction: "none" }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={active.photo} alt="Votre emplacement" className="block w-full" />
+                <img src={active.photo} alt="Emplacement" className="block w-full" />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={activeSrc}
@@ -620,7 +720,6 @@ export function Configurateur() {
                   Glissez l&apos;unité pour la positionner
                 </span>
               </div>
-
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="flex flex-col gap-2">
                   <span className="text-xs text-ash-300">Taille</span>
@@ -630,7 +729,7 @@ export function Configurateur() {
                     max={0.7}
                     step={0.01}
                     value={active.size}
-                    onChange={(e) => setActive({ size: parseFloat(e.target.value) })}
+                    onChange={(e) => updateActive({ size: parseFloat(e.target.value) })}
                     className="accent-glow"
                   />
                 </label>
@@ -642,12 +741,11 @@ export function Configurateur() {
                     max={20}
                     step={1}
                     value={active.rot}
-                    onChange={(e) => setActive({ rot: parseInt(e.target.value) })}
+                    onChange={(e) => updateActive({ rot: parseInt(e.target.value) })}
                     className="accent-glow"
                   />
                 </label>
               </div>
-
               <button
                 onClick={downloadPreview}
                 disabled={downloading}
@@ -659,8 +757,8 @@ export function Configurateur() {
             </>
           )}
           <p className="text-[11px] text-ash-500">
-            Placez l&apos;unité intérieure et l&apos;unité extérieure : les deux
-            visuels seront joints à votre devis.
+            Une photo par pièce (unité intérieure) et par groupe extérieur : tous
+            les visuels sont joints au devis, organisés par pièce.
           </p>
         </div>
       </div>
@@ -674,13 +772,13 @@ export function Configurateur() {
               <div className="flex flex-col gap-3 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-ash-300">
-                    {model.brand} {model.name} × {quantity}
+                    {model.brand} {model.name} — {nbSplits} split(s)
                   </span>
                   <span className="text-ash-100">{eur(materialTotal)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-ash-300">
-                    Forfait pose & accessoires × {quantity}
+                    Forfait pose & accessoires × {nbSplits}
                   </span>
                   <span className="text-ash-100">{eur(poseTotal)}</span>
                 </div>
@@ -693,9 +791,10 @@ export function Configurateur() {
                   </span>
                 </div>
                 <p className="mt-2 text-[11px] leading-relaxed text-ash-400">
-                  Comprend le matériel (unité intérieure + groupe extérieur) et le
-                  forfait pose (main d&apos;œuvre, liaisons, accessoires, mise en
-                  service). Montant indicatif, confirmé après visite technique.
+                  {nbSplits} unité(s) intérieure(s) · {nbGroupes} groupe(s)
+                  extérieur(s). Comprend le matériel et le forfait pose (main
+                  d&apos;œuvre, liaisons, accessoires, mise en service). Montant
+                  indicatif, confirmé après visite technique.
                 </p>
               </div>
             )}
@@ -710,7 +809,8 @@ export function Configurateur() {
                 </p>
                 <p className="mt-2 text-xs leading-relaxed text-ash-300">
                   Notre équipe vous rappelle pour organiser la visite technique,
-                  après laquelle le devis sera validé.
+                  après laquelle le devis sera validé. Vos données ne sont pas
+                  conservées.
                 </p>
                 <button
                   onClick={() => setDevisStatus("idle")}
@@ -724,7 +824,7 @@ export function Configurateur() {
               <>
                 <p className="mb-4 text-xs text-ash-400">
                   Renseignez vos coordonnées pour recevoir votre devis en PDF
-                  (avec vos simulations photo).
+                  (avec vos simulations par pièce).
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <input className={inputClass} placeholder="Prénom" value={client.prenom} onChange={field("prenom")} />
@@ -733,6 +833,24 @@ export function Configurateur() {
                   <input className={inputClass} placeholder="E-mail" type="email" value={client.email} onChange={field("email")} />
                   <input className={cn(inputClass, "sm:col-span-2")} placeholder="Adresse du chantier (optionnel)" value={client.adresse} onChange={field("adresse")} />
                 </div>
+
+                <label className="mt-4 flex cursor-pointer items-start gap-3 text-xs leading-relaxed text-ash-300">
+                  <input
+                    type="checkbox"
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-glow"
+                  />
+                  <span>
+                    J&apos;accepte d&apos;être recontacté au sujet de ma demande.
+                    Mes données servent uniquement à ce traitement :{" "}
+                    <strong className="text-ash-200">
+                      elles ne sont ni conservées, ni revendues, ni exploitées
+                    </strong>{" "}
+                    à d&apos;autres fins.
+                  </span>
+                </label>
+
                 {devisError && <p className="mt-3 text-sm text-red-300">{devisError}</p>}
                 <button
                   onClick={downloadDevis}
@@ -745,9 +863,11 @@ export function Configurateur() {
                     : "Télécharger mon devis (PDF)"}
                 </button>
                 <p className="mt-3 text-[11px] leading-relaxed text-ash-500">
-                  En téléchargeant votre devis, vous acceptez d&apos;être
-                  recontacté par notre équipe. Devis estimatif, validé après
-                  visite technique.
+                  Devis estimatif, validé après visite technique. Voir notre{" "}
+                  <a href="/politique-confidentialite" className="underline hover:text-ash-300">
+                    politique de confidentialité
+                  </a>
+                  .
                 </p>
               </>
             )}
