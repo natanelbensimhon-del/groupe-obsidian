@@ -1,11 +1,27 @@
 import { buildMetadata } from "@/lib/seo";
 import { PageHero } from "@/components/layout/PageHero";
+import { SITE, LEGAL } from "@/lib/site";
 
 export const metadata = buildMetadata({
   title: "Mentions légales",
   description: "Mentions légales du Groupe Obsidian.",
   path: "/mentions-legales",
 });
+
+const Block = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
+  <div>
+    <h2 className="mb-2 text-lg font-medium text-ash-100">{title}</h2>
+    <div className="space-y-1.5 text-sm leading-relaxed text-ash-300">
+      {children}
+    </div>
+  </div>
+);
 
 export default function MentionsLegalesPage() {
   return (
@@ -14,32 +30,76 @@ export default function MentionsLegalesPage() {
         index="—"
         eyebrow="Informations"
         title="Mentions légales"
-        intro="Cette page est un gabarit. ⚠️ À COMPLÉTER avec vos informations légales définitives."
+        intro="Informations relatives à l'éditeur du site et à son hébergement."
       />
       <section className="pb-28">
-        <div className="shell max-w-3xl space-y-8 text-sm leading-relaxed text-ash-300">
-          <div>
-            <h2 className="mb-2 text-ash-100">Éditeur du site</h2>
+        <div className="shell max-w-3xl space-y-10">
+          <Block title="Éditeur du site">
+            <p>{SITE.name}</p>
+            <p>{LEGAL.activity}</p>
+            <p>{LEGAL.form}</p>
+            <p>{SITE.contact.address}</p>
             <p>
-              ⚠️ À COMPLÉTER : raison sociale, forme juridique, capital social,
-              SIREN/SIRET, RCS, n° TVA intracommunautaire, adresse du siège,
-              directeur de la publication, e-mail, téléphone.
+              SIRET : {LEGAL.siret} — {LEGAL.rcs} — {LEGAL.ape}
             </p>
-          </div>
-          <div>
-            <h2 className="mb-2 text-ash-100">Hébergement</h2>
+            <p>N° TVA intracommunautaire : {LEGAL.tva}</p>
             <p>
-              ⚠️ À COMPLÉTER : hébergeur (ex. Vercel Inc.), adresse de
-              l&apos;hébergeur.
+              Téléphone :{" "}
+              <a href={SITE.contact.phoneHref} className="hover:text-white">
+                {SITE.contact.phone}
+              </a>{" "}
+              — E-mail :{" "}
+              <a
+                href={`mailto:${SITE.contact.email}`}
+                className="hover:text-white"
+              >
+                {SITE.contact.email}
+              </a>
             </p>
-          </div>
-          <div>
-            <h2 className="mb-2 text-ash-100">Propriété intellectuelle</h2>
+            <p className="text-ash-400">
+              Directeur de la publication : ⚠ à confirmer (représentant légal de
+              la société).
+            </p>
+          </Block>
+
+          <Block title="Hébergement">
             <p>
-              ⚠️ À COMPLÉTER : mention relative aux droits sur les contenus,
-              marques, logos et visuels.
+              Site hébergé par Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA
+              91789, USA — vercel.com.
             </p>
-          </div>
+          </Block>
+
+          <Block title="Activité & qualifications">
+            <p>
+              {LEGAL.activity}. {LEGAL.fluidesAttestation}.
+            </p>
+            <p className="text-ash-400">
+              ⚠ À compléter : assurance de responsabilité civile professionnelle
+              et décennale (assureur, n° de police, couverture géographique).
+            </p>
+          </Block>
+
+          <Block title="Propriété intellectuelle">
+            <p>
+              L&apos;ensemble des contenus de ce site (textes, visuels, éléments
+              graphiques, logo) est protégé. Toute reproduction ou représentation
+              totale ou partielle sans autorisation est interdite.
+            </p>
+          </Block>
+
+          <Block title="Données personnelles">
+            <p>
+              Le traitement de vos données est décrit dans notre{" "}
+              <a
+                href="/politique-confidentialite"
+                className="text-ash-100 underline hover:text-white"
+              >
+                politique de confidentialité
+              </a>
+              . Vos données ne sont ni conservées durablement, ni revendues, ni
+              exploitées à d&apos;autres fins que le traitement de votre demande.
+            </p>
+          </Block>
         </div>
       </section>
     </>
