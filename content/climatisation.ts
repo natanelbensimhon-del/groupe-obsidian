@@ -146,6 +146,66 @@ export const AC_MODELS: AcModel[] = [
   },
 ];
 
+// ── Tarification pose ──────────────────────────────────────────────────────
+// ⚠️ CONFIDENTIEL / à ajuster : coût interne (main d'œuvre + accessoires) par
+// unité intérieure. NE PAS afficher côté client.
+export const POSE_COST_PER_UNIT = 700; // € — votre coût (MO + accessoires)
+export const POSE_MARGIN = 0.3; // 30 %
+
+// Prix de vente du forfait pose affiché au client.
+// Interprétation retenue : coefficient ×1,30 → 910 €/unité.
+// (Si vous vouliez la « marge commerciale » réelle à 30 % : 700 / 0,70 = 1000 €.
+//  Dans ce cas remplacez la ligne ci-dessous par :
+//  Math.round(POSE_COST_PER_UNIT / (1 - POSE_MARGIN)).)
+export const POSE_PRICE_PER_UNIT = Math.round(
+  POSE_COST_PER_UNIT * (1 + POSE_MARGIN)
+); // 910 €
+
+// ── Passage des câbles (questions non techniques) ─────────────────────────
+export type WallType = "placo" | "dur" | "inconnu";
+export type OutdoorProximity = "proche" | "loin" | "inconnu";
+export type FinishPref = "cache" | "goulotte";
+
+export type CableResult = { key: string; label: string; detail: string };
+
+/** Déduit une reco de passage des câbles à partir de réponses simples. */
+export function recommendCableRouting(
+  wall: WallType,
+  outdoor: OutdoorProximity,
+  finish: FinishPref
+): CableResult {
+  if (finish === "goulotte") {
+    return {
+      key: "goulotte",
+      label: "Goulotte façade + intérieure",
+      detail:
+        "Solution simple et rapide : une goulotte discrète cache les liaisons à l'intérieur et en façade.",
+    };
+  }
+  if (wall === "placo" && outdoor === "proche") {
+    return {
+      key: "encastre",
+      label: "Encastré — câbles cachés",
+      detail:
+        "Cloison légère et unité extérieure proche : le passage caché des liaisons est a priori possible.",
+    };
+  }
+  if (wall === "inconnu" || outdoor === "inconnu") {
+    return {
+      key: "a_definir",
+      label: "À confirmer lors de la visite",
+      detail:
+        "Nous vérifierons sur place si les câbles peuvent être cachés ; à défaut, une goulotte discrète sera posée.",
+    };
+  }
+  return {
+    key: "goulotte",
+    label: "Goulotte discrète recommandée",
+    detail:
+      "Le passage caché semble difficile à cet endroit : une goulotte discrète est la solution la plus adaptée.",
+  };
+}
+
 /**
  * Silhouette SVG générique d'une unité intérieure murale, utilisée quand aucun
  * `unitImage` n'est fourni. Retournée sous forme de data-URL (dessinable sur
