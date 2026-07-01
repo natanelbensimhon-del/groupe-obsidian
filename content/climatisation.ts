@@ -262,6 +262,18 @@ export const DWELLING_LABELS: Record<Dwelling, string> = {
   appartement: "Appartement",
 };
 
+// ── Usage souhaité (issu du questionnaire Solu+, simplifié client) ─────────
+export type Usage = "rafraichir" | "chauffer" | "les_deux";
+export const USAGE_LABELS: Record<Usage, string> = {
+  rafraichir: "Rafraîchir (été)",
+  chauffer: "Chauffer (hiver)",
+  les_deux: "Chauffer et rafraîchir",
+};
+
+// TVA selon l'ancienneté du logement.
+export const TVA_RENOVATION = 0.1; // logement achevé depuis +2 ans
+export const TVA_NEUF = 0.2; // logement neuf / -2 ans
+
 // ── Évacuation des condensats (question non technique) ─────────────────────
 export type Condensate = "facade" | "pluviale" | "relevage" | "inconnu";
 export const CONDENSATE_LABELS: Record<Condensate, string> = {

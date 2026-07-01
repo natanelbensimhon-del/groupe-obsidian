@@ -6,7 +6,9 @@ import {
   AC_TYPES,
   AC_MODELS,
   POSE_PRICE_PER_UNIT,
-  TVA_RATE,
+  TVA_RENOVATION,
+  TVA_NEUF,
+  USAGE_LABELS,
   DWELLING_LABELS,
   CONDENSATE_LABELS,
   recommendCableRouting,
@@ -19,6 +21,7 @@ import {
   type FinishPref,
   type Dwelling,
   type Condensate,
+  type Usage,
 } from "@/content/climatisation";
 import { generateDevisPdf, type DevisSim } from "./devisPdf";
 import { cn } from "@/lib/utils";
@@ -30,7 +33,7 @@ type Slot = {
   size: number;
   rot: number;
 };
-type PieceSlot = Slot & { room: string };
+type PieceSlot = Slot & { room: string; surface?: number };
 
 function imageToSim(dataUrl: string): Promise<DevisSim> {
   return loadImage(dataUrl).then((img) => ({
@@ -179,6 +182,8 @@ export function Configurateur() {
   });
 
   const [dwelling, setDwelling] = useState<Dwelling | null>(null);
+  const [usage, setUsage] = useState<Usage | null>(null);
+  const [oldEnough, setOldEnough] = useState<boolean | null>(null); // logement +2 ans ?
   const [wall, setWall] = useState<WallType | null>(null);
   const [outdoor, setOutdoor] = useState<OutdoorProximity | null>(null);
   const [finish, setFinish] = useState<FinishPref | null>(null);
@@ -237,6 +242,7 @@ export function Configurateur() {
   const materialTotal = (model?.price ?? 0) * nbSplits;
   const poseTotal = POSE_PRICE_PER_UNIT * nbSplits;
   const grandTotal = materialTotal + poseTotal;
+  const tvaRate = oldEnough === false ? TVA_NEUF : TVA_RENOVATION;
 
   function onFile(file?: File | null) {
     if (!file || !file.type.startsWith("image/")) return;
@@ -386,7 +392,9 @@ export function Configurateur() {
         poseUnit: POSE_PRICE_PER_UNIT,
         cableRouting: cableLabel,
         condensate: condensateLabel,
-        tvaRate: TVA_RATE,
+        usage: usage ? USAGE_LABELS[usage] : undefined,
+        rooms: pieces.map((p) => ({ name: p.room, surface: p.surface })),
+        tvaRate,
         sims,
       });
 
@@ -397,6 +405,7 @@ export function Configurateur() {
           ...client,
           type: "Climatisation résidentielle",
           logement: dwellingLabel,
+          usage: usage ? USAGE_LABELS[usage] : undefined,
           modele: `${model.brand} ${model.name}`,
           splits: nbSplits,
           groupes: nbGroupes,
@@ -559,7 +568,7 @@ export function Configurateur() {
           </div>
 
           <div>
-            <p className="label mb-3">6 · Type de logement</p>
+            <p className="label mb-3">6 · Votre logement</p>
             <div className="grid grid-cols-2 gap-2">
               {(["maison", "appartement"] as Dwelling[]).map((dw) => (
                 <button
@@ -574,6 +583,58 @@ export function Configurateur() {
                   )}
                 >
                   {DWELLING_LABELS[dw]}
+                </button>
+              ))}
+            </div>
+
+            <p className="mb-2 mt-4 text-xs font-medium text-ash-200">
+              Votre logement a-t-il plus de 2 ans&nbsp;?
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { v: true, label: "Oui (+ de 2 ans)" },
+                { v: false, label: "Non / neuf" },
+              ].map((o) => (
+                <button
+                  key={String(o.v)}
+                  onClick={() => setOldEnough(o.v)}
+                  data-cursor="hover"
+                  className={cn(
+                    "rounded-xl border px-3 py-2.5 text-center text-xs transition-colors",
+                    oldEnough === o.v
+                      ? "border-white/40 bg-white/10 text-white"
+                      : "border-white/10 text-ash-300 hover:border-white/25"
+                  )}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[11px] text-ash-500">
+              +2 ans → TVA 10 % · neuf → TVA 20 %.
+            </p>
+
+            <p className="mb-2 mt-4 text-xs font-medium text-ash-200">
+              Vous souhaitez surtout&nbsp;?
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {(["rafraichir", "chauffer", "les_deux"] as Usage[]).map((u) => (
+                <button
+                  key={u}
+                  onClick={() => setUsage(u)}
+                  data-cursor="hover"
+                  className={cn(
+                    "rounded-xl border px-2 py-2.5 text-center text-[11px] leading-tight transition-colors",
+                    usage === u
+                      ? "border-white/40 bg-white/10 text-white"
+                      : "border-white/10 text-ash-300 hover:border-white/25"
+                  )}
+                >
+                  {u === "rafraichir"
+                    ? "Rafraîchir"
+                    : u === "chauffer"
+                      ? "Chauffer"
+                      : "Les deux"}
                 </button>
               ))}
             </div>
@@ -688,12 +749,39 @@ export function Configurateur() {
 
           {/* Nom de la pièce (unités intérieures) */}
           {sel.kind === "int" && (
-            <input
-              className={inputClass}
-              placeholder={`Nom de la pièce (ex : Salon, Chambre 1)`}
-              value={(active as PieceSlot).room}
-              onChange={(e) => updateActive({ room: e.target.value } as Partial<Slot>)}
-            />
+            <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-[1fr_120px] gap-2">
+                <input
+                  className={inputClass}
+                  placeholder="Nom de la pièce (ex : Salon)"
+                  value={(active as PieceSlot).room}
+                  onChange={(e) =>
+                    updateActive({ room: e.target.value } as Partial<Slot>)
+                  }
+                />
+                <input
+                  className={inputClass}
+                  type="number"
+                  min={0}
+                  placeholder="Surface m²"
+                  value={(active as PieceSlot).surface ?? ""}
+                  onChange={(e) =>
+                    updateActive({
+                      surface: e.target.value ? Number(e.target.value) : undefined,
+                    } as Partial<Slot>)
+                  }
+                />
+              </div>
+              {model &&
+                (active as PieceSlot).surface &&
+                ((active as PieceSlot).surface as number) > model.surfaceMax && (
+                  <p className="text-[11px] text-amber-300/90">
+                    Pour ~{(active as PieceSlot).surface} m², une puissance
+                    supérieure à {model.name} ({model.powerKw} kW) sera
+                    probablement conseillée — à valider en visite.
+                  </p>
+                )}
+            </div>
           )}
 
           {!active.photo ? (

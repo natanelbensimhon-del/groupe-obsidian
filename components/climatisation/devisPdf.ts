@@ -27,6 +27,8 @@ export type DevisData = {
   poseUnit: number; // TTC
   cableRouting: string;
   condensate: string;
+  usage?: string;
+  rooms?: { name: string; surface?: number }[];
   tvaRate: number;
   sims?: { title: string; sim: DevisSim }[];
 };
@@ -124,10 +126,18 @@ export async function generateDevisPdf(d: DevisData) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(85, 85, 85);
+  const roomsTxt = (d.rooms ?? [])
+    .filter((r) => r.name || r.surface)
+    .map(
+      (r, i) =>
+        `${r.name?.trim() || "Pièce " + (i + 1)}${r.surface ? " ~" + r.surface + " m²" : ""}`
+    )
+    .join(", ");
   const objet =
-    `Fourniture et installation d'une pompe à chaleur air/air réversible (chauffage et climatisation) pour ${d.dwelling.toLowerCase()}, ` +
+    `Fourniture et installation d'une pompe à chaleur air/air réversible${d.usage ? " (" + d.usage.toLowerCase() + ")" : " (chauffage et climatisation)"} pour ${d.dwelling.toLowerCase()}, ` +
     `en configuration ${d.nbGroupes} groupe(s) extérieur(s) / ${d.nbSplits} unité(s) intérieure(s), marque ${d.model.brand} (modèle ${d.model.name}` +
-    `${d.model.ref ? ", réf. " + d.model.ref : ""}). Passage et raccordement des liaisons frigorifiques et électriques, ` +
+    `${d.model.ref ? ", réf. " + d.model.ref : ""})` +
+    `${roomsTxt ? ". Pièces à traiter : " + roomsTxt : ""}. Passage et raccordement des liaisons frigorifiques et électriques, ` +
     `évacuation des condensats (${d.condensate.toLowerCase()}), passage des câbles (${d.cableRouting.toLowerCase()}), ` +
     `tirage au vide, contrôle d'étanchéité, mise en service et essais.`;
   const objetLines = doc.splitTextToSize(objet, W - 2 * M);
@@ -284,7 +294,9 @@ export async function generateDevisPdf(d: DevisData) {
   doc.setFontSize(6.8);
   doc.setTextColor(115, 115, 115);
   [
-    "Montant clé en main (fourniture, pose et mise en service incluses). TVA 10 % — travaux d'amélioration d'un logement achevé depuis plus de 2 ans, sous réserve de la remise de l'attestation de TVA.",
+    d.tvaRate < 0.15
+      ? "Montant clé en main (fourniture, pose et mise en service incluses). TVA 10 % — travaux d'amélioration d'un logement achevé depuis plus de 2 ans, sous réserve de la remise de l'attestation de TVA."
+      : "Montant clé en main (fourniture, pose et mise en service incluses). TVA 20 % (logement neuf ou achevé depuis moins de 2 ans).",
     "Devis estimatif établi à partir de votre configuration en ligne ; les montants et l'implantation définitive sont confirmés après visite technique sur site. Ce document ne vaut pas bon de commande.",
     "Vos données ne sont ni conservées, ni revendues, ni exploitées : elles servent uniquement au traitement de votre demande (rappel, étude, devis).",
     "⚠ À compléter/valider : assurance décennale, CGV.",
