@@ -23,6 +23,24 @@ export const SITE = {
   },
 } as const;
 
+// ── Mentions légales / société (reprises du devis officiel) ────────────────
+// ⚠️ Vérifiez ces informations avant diffusion large. Le n° TVA "FR00…" est
+// repris tel quel du devis — corrigez la clé si nécessaire.
+export const LEGAL = {
+  activity: "Travaux d'installation d'équipements thermiques et de climatisation",
+  form: "SASU au capital de 40 000 €",
+  siret: "904 594 157 00037",
+  tva: "FR00 904 594 157",
+  rcs: "RCS Versailles 904 594 157",
+  ape: "APE 43.29A",
+  projectContact: "Natanel Bensimhon, chef de projet",
+  projectPhone: "06 29 85 28 08",
+  // Attestation d'aptitude à la manipulation des fluides frigorigènes.
+  fluidesAttestation: "Attestation d'aptitude Catégorie I n° 541 2429 (délivrée le 09/03/2026 par CEE Formation)",
+  devisValidity: "3 mois",
+  tvaRate: 0.1, // TVA 10 % — travaux d'amélioration d'un logement achevé depuis +2 ans
+} as const;
+
 export type NavItem = { label: string; href: string };
 
 export const NAV: NavItem[] = [

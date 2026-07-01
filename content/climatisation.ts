@@ -241,9 +241,10 @@ export const AC_MODELS: AcModel[] = [
 export const POSE_COST_PER_UNIT = 700; // € — votre coût (MO + accessoires)
 export const POSE_MARGIN = 0.3; // 30 %
 
-// TVA appliquée sur le devis. ⚠️ PAC air-air : généralement 20 % — à confirmer
-// selon la situation. (Ne pas confondre avec d'éventuelles aides.)
-export const TVA_RATE = 0.2;
+// TVA appliquée sur le devis : 10 % (travaux d'amélioration d'un logement
+// achevé depuis plus de 2 ans, sous réserve de l'attestation de TVA), comme sur
+// votre devis officiel. ⚠️ À adapter si la situation diffère (ex. neuf → 20 %).
+export const TVA_RATE = 0.1;
 
 // Prix de vente du forfait pose affiché au client.
 // Interprétation retenue : coefficient ×1,30 → 910 €/unité.
