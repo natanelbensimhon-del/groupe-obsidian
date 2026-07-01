@@ -30,6 +30,7 @@ export const NAV: NavItem[] = [
   { label: "Le Groupe", href: "/le-groupe" },
   { label: "Tertiaire", href: "/tertiaire" },
   { label: "Travaux", href: "/travaux" },
+  { label: "Climatisation", href: "/climatisation" },
   { label: "OBSI'BAT", href: "/obsibat" },
   { label: "Optimisation CEE", href: "/optimisation-cee" },
   { label: "Particuliers", href: "/particuliers" },

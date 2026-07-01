@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Status = "idle" | "loading" | "success" | "error";
@@ -9,6 +9,7 @@ const PROJECT_TYPES = [
   "Rénovation énergétique tertiaire",
   "Optimisation CEE",
   "Travaux / rénovation",
+  "Climatisation résidentielle",
   "Gros œuvre & démolition (OBSI'BAT)",
   "Projet particulier",
   "Aviation d'affaires (APIRYON)",
@@ -40,6 +41,20 @@ function Field({
 
 export function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+  const typeRef = useRef<HTMLSelectElement>(null);
+
+  // Pré-remplissage depuis le configurateur climatisation (sessionStorage).
+  useEffect(() => {
+    try {
+      const devis = sessionStorage.getItem("obsidian_devis");
+      if (devis) {
+        if (messageRef.current) messageRef.current.value = devis;
+        if (typeRef.current) typeRef.current.value = "Climatisation résidentielle";
+        sessionStorage.removeItem("obsidian_devis");
+      }
+    } catch {}
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -138,7 +153,7 @@ export function ContactForm() {
 
             <div className="grid gap-5 md:grid-cols-2">
               <Field label="Type de projet">
-                <select name="type" className={inputClass} defaultValue="">
+                <select ref={typeRef} name="type" className={inputClass} defaultValue="">
                   <option value="" disabled>
                     Sélectionnez…
                   </option>
@@ -160,6 +175,7 @@ export function ContactForm() {
 
             <Field label="Message" required>
               <textarea
+                ref={messageRef}
                 name="message"
                 required
                 rows={5}

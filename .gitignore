@@ -9,3 +9,8 @@ npm-debug.log*
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+
+# Projets/documents hors-site (ne pas publier)
+/ao-agent/
+/carte-visite/
+/devis/
