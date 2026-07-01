@@ -6,16 +6,29 @@ import {
   AC_TYPES,
   AC_MODELS,
   POSE_PRICE_PER_UNIT,
+  TVA_RATE,
+  DWELLING_LABELS,
+  CONDENSATE_LABELS,
   recommendCableRouting,
   defaultUnitImage,
+  defaultOutdoorImage,
   type AcModel,
   type AcType,
   type WallType,
   type OutdoorProximity,
   type FinishPref,
+  type Dwelling,
+  type Condensate,
 } from "@/content/climatisation";
-import { generateDevisPdf } from "./devisPdf";
+import { generateDevisPdf, type DevisSim } from "./devisPdf";
 import { cn } from "@/lib/utils";
+
+type Placement = {
+  photo: string | null;
+  pos: { x: number; y: number };
+  size: number;
+  rot: number;
+};
 
 const clamp = (v: number, min: number, max: number) =>
   Math.min(max, Math.max(min, v));
@@ -32,7 +45,31 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-/** Groupe de choix (question non technique). */
+async function composite(p: Placement, src: string): Promise<DevisSim | null> {
+  if (!p.photo) return null;
+  const bg = await loadImage(p.photo);
+  const maxW = 1200;
+  const scale = Math.min(1, maxW / bg.naturalWidth);
+  const Wd = Math.round(bg.naturalWidth * scale);
+  const Hd = Math.round(bg.naturalHeight * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = Wd;
+  canvas.height = Hd;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.drawImage(bg, 0, 0, Wd, Hd);
+  const unit = await loadImage(src);
+  const ratio = unit.naturalWidth > 0 ? unit.naturalHeight / unit.naturalWidth : 0.32;
+  const uw = p.size * Wd;
+  const uh = uw * ratio;
+  ctx.save();
+  ctx.translate(p.pos.x * Wd, p.pos.y * Hd);
+  ctx.rotate((p.rot * Math.PI) / 180);
+  ctx.drawImage(unit, -uw / 2, -uh / 2, uw, uh);
+  ctx.restore();
+  return { dataUrl: canvas.toDataURL("image/jpeg", 0.85), ratio: Hd / Wd };
+}
+
 function Choice<T extends string>({
   value,
   options,
@@ -75,19 +112,28 @@ export function Configurateur() {
   const [modelId, setModelId] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
 
-  // Passage des câbles
+  const [dwelling, setDwelling] = useState<Dwelling | null>(null);
   const [wall, setWall] = useState<WallType | null>(null);
   const [outdoor, setOutdoor] = useState<OutdoorProximity | null>(null);
   const [finish, setFinish] = useState<FinishPref | null>(null);
+  const [condensate, setCondensate] = useState<Condensate | null>(null);
 
-  // Visualiseur
-  const [photo, setPhoto] = useState<string | null>(null);
-  const [pos, setPos] = useState({ x: 0.5, y: 0.35 });
-  const [size, setSize] = useState(0.28);
-  const [rotation, setRotation] = useState(0);
+  // Deux vues : unité intérieure & unité extérieure
+  const [view, setView] = useState<"int" | "ext">("int");
+  const [interior, setInterior] = useState<Placement>({
+    photo: null,
+    pos: { x: 0.5, y: 0.35 },
+    size: 0.28,
+    rot: 0,
+  });
+  const [exterior, setExterior] = useState<Placement>({
+    photo: null,
+    pos: { x: 0.5, y: 0.62 },
+    size: 0.4,
+    rot: 0,
+  });
   const [downloading, setDownloading] = useState(false);
 
-  // Devis
   const [client, setClient] = useState({
     prenom: "",
     nom: "",
@@ -112,37 +158,45 @@ export function Configurateur() {
   const model: AcModel | undefined =
     AC_MODELS.find((m) => m.id === modelId) ?? models[0];
   const unitSrc = model?.unitImage || defaultUnitImage();
+  const outdoorSrc = defaultOutdoorImage();
 
   const cable = finish
     ? recommendCableRouting(wall ?? "inconnu", outdoor ?? "inconnu", finish)
     : null;
 
+  const active = view === "int" ? interior : exterior;
+  const setActive = (upd: Partial<Placement>) =>
+    (view === "int" ? setInterior : setExterior)((p) => ({ ...p, ...upd }));
+  const activeSrc = view === "int" ? unitSrc : outdoorSrc;
+
   const materialTotal = (model?.price ?? 0) * quantity;
   const poseTotal = POSE_PRICE_PER_UNIT * quantity;
   const grandTotal = materialTotal + poseTotal;
 
-  // ── Photo ──
   function onFile(file?: File | null) {
     if (!file || !file.type.startsWith("image/")) return;
     const reader = new FileReader();
-    reader.onload = () => {
-      setPhoto(reader.result as string);
-      setPos({ x: 0.5, y: 0.35 });
-    };
+    reader.onload = () =>
+      setActive({
+        photo: reader.result as string,
+        pos: view === "int" ? { x: 0.5, y: 0.35 } : { x: 0.5, y: 0.62 },
+      });
     reader.readAsDataURL(file);
   }
   function onPointerDown(e: React.PointerEvent) {
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    dragRef.current = { sx: e.clientX, sy: e.clientY, bx: pos.x, by: pos.y };
+    dragRef.current = { sx: e.clientX, sy: e.clientY, bx: active.pos.x, by: active.pos.y };
   }
   function onPointerMove(e: React.PointerEvent) {
-    const d = dragRef.current;
+    const dr = dragRef.current;
     const el = containerRef.current;
-    if (!d || !el) return;
+    if (!dr || !el) return;
     const r = el.getBoundingClientRect();
-    setPos({
-      x: clamp(d.bx + (e.clientX - d.sx) / r.width, 0, 1),
-      y: clamp(d.by + (e.clientY - d.sy) / r.height, 0, 1),
+    setActive({
+      pos: {
+        x: clamp(dr.bx + (e.clientX - dr.sx) / r.width, 0, 1),
+        y: clamp(dr.by + (e.clientY - dr.sy) / r.height, 0, 1),
+      },
     });
   }
   function onPointerUp() {
@@ -150,40 +204,19 @@ export function Configurateur() {
   }
 
   async function downloadPreview() {
-    if (!photo) return;
     setDownloading(true);
     try {
-      const bg = await loadImage(photo);
-      const maxW = 1600;
-      const scale = Math.min(1, maxW / bg.naturalWidth);
-      const W = Math.round(bg.naturalWidth * scale);
-      const H = Math.round(bg.naturalHeight * scale);
-      const canvas = document.createElement("canvas");
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      ctx.drawImage(bg, 0, 0, W, H);
-      const unit = await loadImage(unitSrc);
-      const ratio =
-        unit.naturalWidth > 0 ? unit.naturalHeight / unit.naturalWidth : 134 / 420;
-      const uw = size * W;
-      const uh = uw * ratio;
-      ctx.save();
-      ctx.translate(pos.x * W, pos.y * H);
-      ctx.rotate((rotation * Math.PI) / 180);
-      ctx.drawImage(unit, -uw / 2, -uh / 2, uw, uh);
-      ctx.restore();
+      const sim = await composite(active, activeSrc);
+      if (!sim) return;
       const a = document.createElement("a");
-      a.href = canvas.toDataURL("image/png");
-      a.download = `apercu-climatisation-${model?.id ?? "obsidian"}.png`;
+      a.href = sim.dataUrl;
+      a.download = `apercu-${view === "int" ? "interieur" : "exterieur"}-${model?.id ?? "obsidian"}.jpg`;
       a.click();
     } finally {
       setDownloading(false);
     }
   }
 
-  // ── Devis PDF ──
   async function downloadDevis() {
     setDevisError("");
     if (!model) return;
@@ -207,12 +240,21 @@ export function Configurateur() {
     )}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
     const dateFr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
     const cableLabel = cable?.label ?? "À déterminer lors de la visite technique";
+    const condensateLabel = condensate
+      ? CONDENSATE_LABELS[condensate]
+      : CONDENSATE_LABELS.inconnu;
+    const dwellingLabel = dwelling ? DWELLING_LABELS[dwelling] : "Non précisé";
 
     try {
+      const [interiorSim, exteriorSim] = await Promise.all([
+        composite(interior, unitSrc),
+        composite(exterior, outdoorSrc),
+      ]);
       await generateDevisPdf({
         numero,
         date: dateFr,
         client,
+        dwelling: dwellingLabel,
         model: {
           brand: model.brand,
           name: model.name,
@@ -225,17 +267,22 @@ export function Configurateur() {
         materialUnit: model.price,
         poseUnit: POSE_PRICE_PER_UNIT,
         cableRouting: cableLabel,
+        condensate: condensateLabel,
+        tvaRate: TVA_RATE,
+        interiorSim: interiorSim ?? undefined,
+        exteriorSim: exteriorSim ?? undefined,
       });
-      // Capture du lead (pour rappel par l'équipe) — ne bloque pas le download.
       fetch("/api/devis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...client,
           type: "Climatisation résidentielle",
+          logement: dwellingLabel,
           modele: `${model.brand} ${model.name}`,
           quantite: quantity,
           passageCables: cableLabel,
+          condensats: condensateLabel,
           totalEstimatif: grandTotal,
           numero,
         }),
@@ -253,7 +300,7 @@ export function Configurateur() {
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,380px)_1fr]">
-        {/* ── Panneau de configuration ── */}
+        {/* ── Configuration ── */}
         <div className="flex flex-col gap-6 rounded-2xl border border-white/10 bg-obsidian-800/60 p-6">
           <div>
             <p className="label mb-3">1 · Marque</p>
@@ -313,7 +360,7 @@ export function Configurateur() {
             ) : (
               <div className="flex flex-col gap-2">
                 {models.map((m) => {
-                  const active = model?.id === m.id;
+                  const activeM = model?.id === m.id;
                   return (
                     <button
                       key={m.id}
@@ -321,7 +368,7 @@ export function Configurateur() {
                       data-cursor="hover"
                       className={cn(
                         "rounded-xl border p-4 text-left transition-colors",
-                        active
+                        activeM
                           ? "border-white/40 bg-white/[0.06]"
                           : "border-white/10 hover:border-white/25"
                       )}
@@ -344,8 +391,8 @@ export function Configurateur() {
               </div>
             )}
             <p className="mt-3 text-[11px] leading-relaxed text-ash-500">
-              Prix publics indicatifs TTC du matériel — à confirmer selon
-              l&apos;étude technique.
+              Prix publics indicatifs TTC du matériel (unité intérieure + groupe
+              extérieur) — à confirmer selon l&apos;étude technique.
             </p>
           </div>
 
@@ -375,9 +422,30 @@ export function Configurateur() {
             </div>
           </div>
 
-          {/* 5 · Passage des câbles (non technique) */}
+          <div>
+            <p className="label mb-3">5 · Type de logement</p>
+            <div className="grid grid-cols-2 gap-2">
+              {(["maison", "appartement"] as Dwelling[]).map((dw) => (
+                <button
+                  key={dw}
+                  onClick={() => setDwelling(dw)}
+                  data-cursor="hover"
+                  className={cn(
+                    "rounded-xl border px-3 py-3 text-center text-xs transition-colors",
+                    dwelling === dw
+                      ? "border-white/40 bg-white/10 text-white"
+                      : "border-white/10 text-ash-300 hover:border-white/25"
+                  )}
+                >
+                  {DWELLING_LABELS[dw]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 6 · Passage des câbles */}
           <div className="border-t border-white/10 pt-6">
-            <p className="label mb-1">5 · Passage des câbles</p>
+            <p className="label mb-1">6 · Passage des câbles</p>
             <p className="mb-4 text-xs text-ash-400">
               Trois questions simples pour savoir si les câbles peuvent être
               cachés ou passés dans une goulotte discrète.
@@ -390,20 +458,11 @@ export function Configurateur() {
               value={wall}
               onChange={setWall}
               options={[
-                {
-                  id: "placo",
-                  label: "Une cloison légère / placo",
-                  hint: "Ça sonne creux quand on tape dessus.",
-                },
-                {
-                  id: "dur",
-                  label: "Un mur dur",
-                  hint: "Béton, brique, pierre — plein.",
-                },
+                { id: "placo", label: "Une cloison légère / placo", hint: "Ça sonne creux quand on tape dessus." },
+                { id: "dur", label: "Un mur dur", hint: "Béton, brique, pierre — plein." },
                 { id: "inconnu", label: "Je ne sais pas" },
               ]}
             />
-
             <p className="mb-2 mt-5 text-xs font-medium text-ash-200">
               L&apos;unité extérieure sera-t-elle facile à relier&nbsp;?
             </p>
@@ -411,20 +470,11 @@ export function Configurateur() {
               value={outdoor}
               onChange={setOutdoor}
               options={[
-                {
-                  id: "proche",
-                  label: "Oui, tout proche / juste derrière",
-                  hint: "Même mur, balcon, ou à quelques mètres.",
-                },
-                {
-                  id: "loin",
-                  label: "Non, plutôt éloignée",
-                  hint: "Autre pièce, autre étage, façade opposée.",
-                },
+                { id: "proche", label: "Oui, tout proche / juste derrière", hint: "Même mur, balcon, ou à quelques mètres." },
+                { id: "loin", label: "Non, plutôt éloignée", hint: "Autre pièce, autre étage, façade opposée." },
                 { id: "inconnu", label: "Je ne sais pas" },
               ]}
             />
-
             <p className="mb-2 mt-5 text-xs font-medium text-ash-200">
               Côté esthétique, vous préférez&nbsp;?
             </p>
@@ -432,19 +482,10 @@ export function Configurateur() {
               value={finish}
               onChange={setFinish}
               options={[
-                {
-                  id: "cache",
-                  label: "Des câbles cachés si c'est possible",
-                  hint: "Rendu le plus discret.",
-                },
-                {
-                  id: "goulotte",
-                  label: "Une goulotte discrète me convient",
-                  hint: "Simple et rapide.",
-                },
+                { id: "cache", label: "Des câbles cachés si c'est possible", hint: "Rendu le plus discret." },
+                { id: "goulotte", label: "Une goulotte discrète me convient", hint: "Simple et rapide." },
               ]}
             />
-
             {cable && (
               <div className="mt-5 rounded-xl border border-glow/25 bg-glow/[0.06] p-4">
                 <p className="text-xs uppercase tracking-label text-glow">
@@ -459,15 +500,51 @@ export function Configurateur() {
               </div>
             )}
           </div>
+
+          {/* 7 · Évacuation des condensats */}
+          <div className="border-t border-white/10 pt-6">
+            <p className="label mb-1">7 · Évacuation de l&apos;eau</p>
+            <p className="mb-4 text-xs text-ash-400">
+              La climatisation produit un peu d&apos;eau (condensats). Comment
+              l&apos;évacuer&nbsp;?
+            </p>
+            <Choice<Condensate>
+              value={condensate}
+              onChange={setCondensate}
+              options={[
+                { id: "facade", label: "Écoulement libre en façade", hint: "Un léger filet d'eau s'écoule sur le mur extérieur." },
+                { id: "pluviale", label: "Vers une descente d'eau de pluie", hint: "S'il y a une gouttière / descente à proximité." },
+                { id: "relevage", label: "Prévoir une pompe de relevage", hint: "Si aucune évacuation naturelle n'est possible (ex. appartement)." },
+                { id: "inconnu", label: "Je ne sais pas", hint: "On déterminera la meilleure solution en visite." },
+              ]}
+            />
+          </div>
         </div>
 
-        {/* ── Visualiseur ── */}
+        {/* ── Visualiseur (2 vues) ── */}
         <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-obsidian-800/60 p-6">
-          <div className="flex items-center justify-between">
-            <p className="label">Aperçu sur votre pièce</p>
-            {photo && (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex rounded-full border border-white/10 p-1">
+              {([
+                { id: "int", label: "Unité intérieure" },
+                { id: "ext", label: "Unité extérieure" },
+              ] as const).map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => setView(v.id)}
+                  data-cursor="hover"
+                  className={cn(
+                    "rounded-full px-4 py-1.5 text-xs transition-colors",
+                    view === v.id ? "bg-white/10 text-white" : "text-ash-300"
+                  )}
+                >
+                  {v.label}
+                </button>
+              ))}
+            </div>
+            {active.photo && (
               <button
-                onClick={() => setPhoto(null)}
+                onClick={() => setActive({ photo: null })}
                 className="text-xs text-ash-400 hover:text-white"
                 data-cursor="hover"
               >
@@ -476,7 +553,7 @@ export function Configurateur() {
             )}
           </div>
 
-          {!photo ? (
+          {!active.photo ? (
             <label
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
@@ -499,7 +576,9 @@ export function Configurateur() {
               </div>
               <div>
                 <p className="text-sm text-ash-100">
-                  Déposez une photo de votre mur / pièce
+                  {view === "int"
+                    ? "Déposez une photo du mur / de la pièce"
+                    : "Déposez une photo de la façade / emplacement extérieur"}
                 </p>
                 <p className="mt-1 text-xs text-ash-400">
                   ou cliquez pour parcourir · JPG, PNG
@@ -520,21 +599,21 @@ export function Configurateur() {
                 style={{ touchAction: "none" }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photo} alt="Votre pièce" className="block w-full" />
+                <img src={active.photo} alt="Votre emplacement" className="block w-full" />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={unitSrc}
-                  alt="Unité intérieure"
+                  src={activeSrc}
+                  alt="Unité"
                   draggable={false}
                   onPointerDown={onPointerDown}
                   onPointerMove={onPointerMove}
                   onPointerUp={onPointerUp}
                   className="absolute cursor-grab touch-none drop-shadow-[0_10px_25px_rgba(0,0,0,0.45)] active:cursor-grabbing"
                   style={{
-                    left: `${pos.x * 100}%`,
-                    top: `${pos.y * 100}%`,
-                    width: `${size * 100}%`,
-                    transform: `translate(-50%,-50%) rotate(${rotation}deg)`,
+                    left: `${active.pos.x * 100}%`,
+                    top: `${active.pos.y * 100}%`,
+                    width: `${active.size * 100}%`,
+                    transform: `translate(-50%,-50%) rotate(${active.rot}deg)`,
                   }}
                 />
                 <span className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-black/50 px-3 py-1 text-[11px] text-white/80 backdrop-blur">
@@ -548,10 +627,10 @@ export function Configurateur() {
                   <input
                     type="range"
                     min={0.12}
-                    max={0.6}
+                    max={0.7}
                     step={0.01}
-                    value={size}
-                    onChange={(e) => setSize(parseFloat(e.target.value))}
+                    value={active.size}
+                    onChange={(e) => setActive({ size: parseFloat(e.target.value) })}
                     className="accent-glow"
                   />
                 </label>
@@ -562,8 +641,8 @@ export function Configurateur() {
                     min={-20}
                     max={20}
                     step={1}
-                    value={rotation}
-                    onChange={(e) => setRotation(parseInt(e.target.value))}
+                    value={active.rot}
+                    onChange={(e) => setActive({ rot: parseInt(e.target.value) })}
                     className="accent-glow"
                   />
                 </label>
@@ -575,17 +654,20 @@ export function Configurateur() {
                 className="btn-ghost self-start disabled:opacity-40"
                 data-cursor="hover"
               >
-                {downloading ? "Génération…" : "Télécharger l'aperçu"}
+                {downloading ? "Génération…" : "Télécharger cet aperçu"}
               </button>
             </>
           )}
+          <p className="text-[11px] text-ash-500">
+            Placez l&apos;unité intérieure et l&apos;unité extérieure : les deux
+            visuels seront joints à votre devis.
+          </p>
         </div>
       </div>
 
       {/* ── Devis ── */}
       <div className="rounded-2xl border border-white/10 bg-obsidian-800/60 p-6 md:p-8">
         <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
-          {/* Récap prix */}
           <div>
             <p className="label mb-5">Votre estimation</p>
             {model && (
@@ -611,15 +693,14 @@ export function Configurateur() {
                   </span>
                 </div>
                 <p className="mt-2 text-[11px] leading-relaxed text-ash-400">
-                  Le forfait pose comprend la main d&apos;œuvre, la mise en
-                  service, les liaisons et accessoires. Montant indicatif,
-                  confirmé après visite technique.
+                  Comprend le matériel (unité intérieure + groupe extérieur) et le
+                  forfait pose (main d&apos;œuvre, liaisons, accessoires, mise en
+                  service). Montant indicatif, confirmé après visite technique.
                 </p>
               </div>
             )}
           </div>
 
-          {/* Coordonnées + téléchargement */}
           <div>
             <p className="label mb-2">Téléchargez votre devis</p>
             {devisStatus === "done" ? (
@@ -642,45 +723,17 @@ export function Configurateur() {
             ) : (
               <>
                 <p className="mb-4 text-xs text-ash-400">
-                  Renseignez vos coordonnées pour recevoir votre devis en PDF.
+                  Renseignez vos coordonnées pour recevoir votre devis en PDF
+                  (avec vos simulations photo).
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <input
-                    className={inputClass}
-                    placeholder="Prénom"
-                    value={client.prenom}
-                    onChange={field("prenom")}
-                  />
-                  <input
-                    className={inputClass}
-                    placeholder="Nom"
-                    value={client.nom}
-                    onChange={field("nom")}
-                  />
-                  <input
-                    className={inputClass}
-                    placeholder="Téléphone"
-                    type="tel"
-                    value={client.tel}
-                    onChange={field("tel")}
-                  />
-                  <input
-                    className={inputClass}
-                    placeholder="E-mail"
-                    type="email"
-                    value={client.email}
-                    onChange={field("email")}
-                  />
-                  <input
-                    className={cn(inputClass, "sm:col-span-2")}
-                    placeholder="Adresse du chantier (optionnel)"
-                    value={client.adresse}
-                    onChange={field("adresse")}
-                  />
+                  <input className={inputClass} placeholder="Prénom" value={client.prenom} onChange={field("prenom")} />
+                  <input className={inputClass} placeholder="Nom" value={client.nom} onChange={field("nom")} />
+                  <input className={inputClass} placeholder="Téléphone" type="tel" value={client.tel} onChange={field("tel")} />
+                  <input className={inputClass} placeholder="E-mail" type="email" value={client.email} onChange={field("email")} />
+                  <input className={cn(inputClass, "sm:col-span-2")} placeholder="Adresse du chantier (optionnel)" value={client.adresse} onChange={field("adresse")} />
                 </div>
-                {devisError && (
-                  <p className="mt-3 text-sm text-red-300">{devisError}</p>
-                )}
+                {devisError && <p className="mt-3 text-sm text-red-300">{devisError}</p>}
                 <button
                   onClick={downloadDevis}
                   disabled={devisStatus === "generating"}

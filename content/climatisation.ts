@@ -152,6 +152,10 @@ export const AC_MODELS: AcModel[] = [
 export const POSE_COST_PER_UNIT = 700; // € — votre coût (MO + accessoires)
 export const POSE_MARGIN = 0.3; // 30 %
 
+// TVA appliquée sur le devis. ⚠️ PAC air-air : généralement 20 % — à confirmer
+// selon la situation. (Ne pas confondre avec d'éventuelles aides.)
+export const TVA_RATE = 0.2;
+
 // Prix de vente du forfait pose affiché au client.
 // Interprétation retenue : coefficient ×1,30 → 910 €/unité.
 // (Si vous vouliez la « marge commerciale » réelle à 30 % : 700 / 0,70 = 1000 €.
@@ -160,6 +164,22 @@ export const POSE_MARGIN = 0.3; // 30 %
 export const POSE_PRICE_PER_UNIT = Math.round(
   POSE_COST_PER_UNIT * (1 + POSE_MARGIN)
 ); // 910 €
+
+// ── Contexte logement ──────────────────────────────────────────────────────
+export type Dwelling = "maison" | "appartement";
+export const DWELLING_LABELS: Record<Dwelling, string> = {
+  maison: "Maison individuelle",
+  appartement: "Appartement",
+};
+
+// ── Évacuation des condensats (question non technique) ─────────────────────
+export type Condensate = "facade" | "pluviale" | "relevage" | "inconnu";
+export const CONDENSATE_LABELS: Record<Condensate, string> = {
+  facade: "Écoulement libre en façade",
+  pluviale: "Raccordement à une descente d'eau pluviale",
+  relevage: "Pompe de relevage",
+  inconnu: "À déterminer lors de la visite",
+};
 
 // ── Passage des câbles (questions non techniques) ─────────────────────────
 export type WallType = "placo" | "dur" | "inconnu";
@@ -224,6 +244,37 @@ export function defaultUnitImage(): string {
   <line x1='34' y1='96' x2='386' y2='96' stroke='#a3adb9' stroke-width='2'/>
   <rect x='44' y='28' width='150' height='7' rx='3.5' fill='#eef1f5'/>
   <circle cx='372' cy='44' r='4.5' fill='#7f97ad'/>
+</svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+/** Silhouette SVG générique d'un groupe extérieur (unité extérieure / PAC). */
+export function defaultOutdoorImage(): string {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='360' height='240' viewBox='0 0 360 240'>
+  <defs>
+    <linearGradient id='og' x1='0' y1='0' x2='0' y2='1'>
+      <stop offset='0' stop-color='#eef1f5'/>
+      <stop offset='1' stop-color='#c7ced7'/>
+    </linearGradient>
+  </defs>
+  <rect x='6' y='10' width='348' height='196' rx='16' fill='url(#og)' stroke='#9aa4b0' stroke-width='2'/>
+  <rect x='6' y='176' width='348' height='30' rx='8' fill='#b6bfca'/>
+  <circle cx='240' cy='108' r='78' fill='none' stroke='#8a94a1' stroke-width='3'/>
+  <circle cx='240' cy='108' r='10' fill='#8a94a1'/>
+  <g stroke='#aab3be' stroke-width='2'>
+    <line x1='240' y1='40' x2='240' y2='176'/>
+    <line x1='172' y1='108' x2='308' y2='108'/>
+    <line x1='192' y1='60' x2='288' y2='156'/>
+    <line x1='288' y1='60' x2='192' y2='156'/>
+  </g>
+  <g stroke='#9aa4b0' stroke-width='3' stroke-linecap='round'>
+    <line x1='36' y1='58' x2='120' y2='58'/>
+    <line x1='36' y1='84' x2='120' y2='84'/>
+    <line x1='36' y1='110' x2='120' y2='110'/>
+    <line x1='36' y1='136' x2='120' y2='136'/>
+  </g>
+  <rect x='26' y='214' width='60' height='18' rx='4' fill='#9aa4b0'/>
+  <rect x='274' y='214' width='60' height='18' rx='4' fill='#9aa4b0'/>
 </svg>`;
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
