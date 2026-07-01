@@ -25,11 +25,19 @@ import { cn } from "@/lib/utils";
 
 type Slot = {
   photo: string | null;
+  render?: string | null; // rendu IA (remplace l'aperçu si présent)
   pos: { x: number; y: number };
   size: number;
   rot: number;
 };
 type PieceSlot = Slot & { room: string };
+
+function imageToSim(dataUrl: string): Promise<DevisSim> {
+  return loadImage(dataUrl).then((img) => ({
+    dataUrl,
+    ratio: img.naturalWidth > 0 ? img.naturalHeight / img.naturalWidth : 0.66,
+  }));
+}
 
 const INT_POS = { x: 0.5, y: 0.35 };
 const EXT_POS = { x: 0.5, y: 0.62 };
@@ -177,6 +185,9 @@ export function Configurateur() {
   const [condensate, setCondensate] = useState<Condensate | null>(null);
 
   const [downloading, setDownloading] = useState(false);
+  const [aiConsent, setAiConsent] = useState(false);
+  const [aiStatus, setAiStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [aiError, setAiError] = useState("");
   const [client, setClient] = useState({
     prenom: "",
     nom: "",
@@ -260,7 +271,9 @@ export function Configurateur() {
   async function downloadPreview() {
     setDownloading(true);
     try {
-      const sim = await composite(active, activeSrc);
+      const sim = active.render
+        ? await imageToSim(active.render)
+        : await composite(active, activeSrc);
       if (!sim) return;
       const a = document.createElement("a");
       a.href = sim.dataUrl;
@@ -268,6 +281,43 @@ export function Configurateur() {
       a.click();
     } finally {
       setDownloading(false);
+    }
+  }
+
+  async function generateRender() {
+    if (!active.photo || !model) return;
+    if (!aiConsent) {
+      setAiError("Merci d'accepter l'envoi de la photo au service d'IA.");
+      return;
+    }
+    setAiError("");
+    setAiStatus("loading");
+    try {
+      const res = await fetch("/api/render", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image: active.photo,
+          brand: model.brand,
+          model: model.name,
+          kind: sel.kind,
+        }),
+      });
+      const j = await res.json();
+      if (!j.ok) {
+        setAiStatus("error");
+        setAiError(
+          j.error === "not_configured"
+            ? "Le rendu réaliste par IA sera bientôt disponible."
+            : "Le rendu IA n'a pas abouti. Réessayez ou utilisez le placement manuel."
+        );
+        return;
+      }
+      updateActive({ render: j.image });
+      setAiStatus("idle");
+    } catch {
+      setAiStatus("error");
+      setAiError("Le rendu IA n'a pas abouti. Réessayez.");
     }
   }
 
@@ -299,9 +349,11 @@ export function Configurateur() {
     const dwellingLabel = dwelling ? DWELLING_LABELS[dwelling] : "Non précisé";
 
     try {
+      const buildSim = (slot: Slot, src: string) =>
+        slot.render ? imageToSim(slot.render) : composite(slot, src);
       const [pieceSims, groupSims] = await Promise.all([
-        Promise.all(pieces.map((p) => composite(p, unitSrc))),
-        Promise.all(groupes.map((g) => composite(g, outdoorSrc))),
+        Promise.all(pieces.map((p) => buildSim(p, unitSrc))),
+        Promise.all(groupes.map((g) => buildSim(g, outdoorSrc))),
       ]);
       const sims: { title: string; sim: DevisSim }[] = [];
       pieceSims.forEach((s, i) => {
@@ -686,74 +738,136 @@ export function Configurateur() {
             <>
               <div className="flex items-center justify-end">
                 <button
-                  onClick={() => updateActive({ photo: null })}
+                  onClick={() => updateActive({ photo: null, render: null })}
                   className="text-xs text-ash-400 hover:text-white"
                   data-cursor="hover"
                 >
                   Changer de photo
                 </button>
               </div>
-              <div
-                ref={containerRef}
-                className="relative select-none overflow-hidden rounded-xl border border-white/10"
-                style={{ touchAction: "none" }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={active.photo} alt="Emplacement" className="block w-full" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={activeSrc}
-                  alt="Unité"
-                  draggable={false}
-                  onPointerDown={onPointerDown}
-                  onPointerMove={onPointerMove}
-                  onPointerUp={onPointerUp}
-                  className="absolute cursor-grab touch-none drop-shadow-[0_10px_25px_rgba(0,0,0,0.45)] active:cursor-grabbing"
-                  style={{
-                    left: `${active.pos.x * 100}%`,
-                    top: `${active.pos.y * 100}%`,
-                    width: `${active.size * 100}%`,
-                    transform: `translate(-50%,-50%) rotate(${active.rot}deg)`,
-                  }}
-                />
-                <span className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-black/50 px-3 py-1 text-[11px] text-white/80 backdrop-blur">
-                  Glissez l&apos;unité pour la positionner
-                </span>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="flex flex-col gap-2">
-                  <span className="text-xs text-ash-300">Taille</span>
+
+              {active.render ? (
+                <div className="relative overflow-hidden rounded-xl border border-white/10">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={active.render} alt="Rendu réaliste" className="block w-full" />
+                  <span className="absolute left-2 top-2 rounded-full bg-glow/80 px-3 py-1 text-[11px] font-medium text-obsidian-900">
+                    Rendu IA
+                  </span>
+                  <button
+                    onClick={() => updateActive({ render: null })}
+                    className="absolute right-2 top-2 rounded-full bg-black/50 px-3 py-1 text-[11px] text-white/80 backdrop-blur hover:text-white"
+                    data-cursor="hover"
+                  >
+                    Placement manuel
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div
+                    ref={containerRef}
+                    className="relative select-none overflow-hidden rounded-xl border border-white/10"
+                    style={{ touchAction: "none" }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={active.photo} alt="Emplacement" className="block w-full" />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={activeSrc}
+                      alt="Unité"
+                      draggable={false}
+                      onPointerDown={onPointerDown}
+                      onPointerMove={onPointerMove}
+                      onPointerUp={onPointerUp}
+                      className="absolute cursor-grab touch-none drop-shadow-[0_10px_25px_rgba(0,0,0,0.45)] active:cursor-grabbing"
+                      style={{
+                        left: `${active.pos.x * 100}%`,
+                        top: `${active.pos.y * 100}%`,
+                        width: `${active.size * 100}%`,
+                        transform: `translate(-50%,-50%) rotate(${active.rot}deg)`,
+                      }}
+                    />
+                    <span className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-black/50 px-3 py-1 text-[11px] text-white/80 backdrop-blur">
+                      Glissez l&apos;unité pour la positionner
+                    </span>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="flex flex-col gap-2">
+                      <span className="text-xs text-ash-300">Taille</span>
+                      <input
+                        type="range"
+                        min={0.12}
+                        max={0.7}
+                        step={0.01}
+                        value={active.size}
+                        onChange={(e) => updateActive({ size: parseFloat(e.target.value) })}
+                        className="accent-glow"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-2">
+                      <span className="text-xs text-ash-300">Inclinaison</span>
+                      <input
+                        type="range"
+                        min={-20}
+                        max={20}
+                        step={1}
+                        value={active.rot}
+                        onChange={(e) => updateActive({ rot: parseInt(e.target.value) })}
+                        className="accent-glow"
+                      />
+                    </label>
+                  </div>
+                </>
+              )}
+
+              {/* Rendu réaliste par IA */}
+              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                <p className="text-xs font-medium text-ash-100">
+                  Rendu réaliste par IA
+                </p>
+                <p className="mt-1 text-[11px] leading-relaxed text-ash-400">
+                  Génère une photo réaliste de l&apos;unité installée
+                  (quelques secondes). Sinon, placez l&apos;unité à la main
+                  ci-dessus.
+                </p>
+                <label className="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-ash-300">
                   <input
-                    type="range"
-                    min={0.12}
-                    max={0.7}
-                    step={0.01}
-                    value={active.size}
-                    onChange={(e) => updateActive({ size: parseFloat(e.target.value) })}
-                    className="accent-glow"
+                    type="checkbox"
+                    checked={aiConsent}
+                    onChange={(e) => setAiConsent(e.target.checked)}
+                    className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-glow"
                   />
+                  <span>
+                    J&apos;accepte que ma photo soit envoyée à un service d&apos;IA
+                    (Google Gemini) pour générer le rendu. Elle n&apos;est pas
+                    conservée.
+                  </span>
                 </label>
-                <label className="flex flex-col gap-2">
-                  <span className="text-xs text-ash-300">Inclinaison</span>
-                  <input
-                    type="range"
-                    min={-20}
-                    max={20}
-                    step={1}
-                    value={active.rot}
-                    onChange={(e) => updateActive({ rot: parseInt(e.target.value) })}
-                    className="accent-glow"
-                  />
-                </label>
+                {aiError && (
+                  <p className="mt-2 text-[11px] text-amber-300/90">{aiError}</p>
+                )}
+                <div className="mt-3 flex flex-wrap items-center gap-4">
+                  <button
+                    onClick={generateRender}
+                    disabled={aiStatus === "loading"}
+                    className="btn-ghost text-xs disabled:opacity-40"
+                    data-cursor="hover"
+                  >
+                    {aiStatus === "loading"
+                      ? "Génération du rendu… (quelques secondes)"
+                      : active.render
+                        ? "Régénérer le rendu IA"
+                        : "Générer un rendu réaliste (IA)"}
+                  </button>
+                  <button
+                    onClick={downloadPreview}
+                    disabled={downloading}
+                    className="text-xs text-ash-400 hover:text-white disabled:opacity-40"
+                    data-cursor="hover"
+                  >
+                    {downloading ? "Génération…" : "Télécharger cet aperçu"}
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={downloadPreview}
-                disabled={downloading}
-                className="btn-ghost self-start disabled:opacity-40"
-                data-cursor="hover"
-              >
-                {downloading ? "Génération…" : "Télécharger cet aperçu"}
-              </button>
             </>
           )}
           <p className="text-[11px] text-ash-500">

@@ -101,6 +101,21 @@ export default function ConfidentialitePage() {
             </p>
           </Block>
 
+          <Block title="Rendu réaliste par IA (optionnel)">
+            <p>
+              Le configurateur climatisation propose, en option, un rendu
+              photo-réaliste généré par intelligence artificielle. Cette
+              fonction n&apos;est utilisée que si vous la déclenchez
+              <strong> explicitement</strong> et cochez le consentement dédié.
+            </p>
+            <p>
+              Dans ce cas uniquement, la photo que vous fournissez est transmise
+              à un prestataire d&apos;IA (Google Gemini) le temps de générer
+              l&apos;image, sans conservation de notre part. Si vous n&apos;utilisez
+              pas cette option, aucune image n&apos;est envoyée à un tiers.
+            </p>
+          </Block>
+
           <Block title="Cookies">
             <p>
               Ce site ne dépose pas de cookies publicitaires ou de traçage. ⚠ À
