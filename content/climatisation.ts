@@ -14,20 +14,59 @@
 
 export type AcType = "mural" | "console" | "gainable";
 
-export type AcModel = {
-  id: string;
-  brand: string;
-  name: string;
-  type: AcType;
-  powerKw: number; // puissance froid (kW)
+// Une variante = une puissance disponible dans une gamme (prix TTC indicatif).
+export type AcVariant = {
+  powerKw: number; // puissance (kW)
   btu: number; // équivalent BTU
   surfaceMax: number; // surface conseillée (m²)
+  price: number; // € TTC — ⚠️ INDICATIF, à confirmer via export catalogue
+  ref?: string; // réf. interne (jamais affichée au client)
+};
+
+// Une gamme = un produit décliné en plusieurs puissances (ex. Daikin « Stylish »).
+// Côté client on n'affiche QUE le nom de la gamme ; la puissance est choisie
+// automatiquement selon la surface et l'isolation de chaque pièce.
+export type AcGamme = {
+  id: string;
+  brand: string;
+  name: string; // nom de gamme affiché (ex. "Stylish")
+  type: AcType;
   scop?: number;
-  seer?: number;
-  price: number; // € TTC public — ⚠️ INDICATIF, à confirmer
-  ref?: string; // référence ClimPlus
+  tagline?: string;
+  variants: AcVariant[]; // triées par puissance croissante
   unitImage?: string; // /climatisation/xxx.png (détourée) — sinon silhouette
 };
+
+// ── Isolation & dimensionnement automatique de la puissance ────────────────
+export type Insulation = "bonne" | "moyenne" | "faible";
+export const INSULATION_LABELS: Record<Insulation, string> = {
+  bonne: "Bonne (logement récent ou rénové)",
+  moyenne: "Moyenne",
+  faible: "Faible (ancien, peu isolé)",
+};
+// Puissance indicative nécessaire par m² (W/m²) selon l'isolation.
+const W_PER_M2: Record<Insulation, number> = { bonne: 80, moyenne: 100, faible: 125 };
+
+/** Puissance (kW) conseillée pour une pièce, selon surface + isolation. */
+export function requiredKw(surface: number, insul: Insulation): number {
+  return Math.round(((surface * W_PER_M2[insul]) / 1000) * 10) / 10;
+}
+
+/** Choisit la variante adaptée d'une gamme selon surface + isolation. */
+export function pickVariant(
+  g: AcGamme,
+  surface?: number,
+  insul?: Insulation
+): AcVariant {
+  if (!surface || !insul) return g.variants[0];
+  const need = requiredKw(surface, insul);
+  return g.variants.find((v) => v.powerKw >= need) ?? g.variants[g.variants.length - 1];
+}
+
+/** Prix "à partir de" d'une gamme (variante la moins chère). */
+export function gammeFrom(g: AcGamme): number {
+  return Math.min(...g.variants.map((v) => v.price));
+}
 
 export const AC_BRANDS = [
   "Daikin",
@@ -43,196 +82,43 @@ export const AC_TYPES: { id: AcType; label: string; desc: string }[] = [
   { id: "gainable", label: "Gainable", desc: "Encastré en faux-plafond — discrétion maximale." },
 ];
 
-// ⚠️ Données INDICATIVES à vérifier / compléter depuis ClimPlus.
-export const AC_MODELS: AcModel[] = [
-  {
-    id: "daikin-sensira-35",
-    brand: "Daikin",
-    name: "Sensira FTXF35E",
-    type: "mural",
-    powerKw: 3.5,
-    btu: 12000,
-    surfaceMax: 35,
-    scop: 4.0,
-    seer: 6.8,
-    price: 890,
-    ref: "FTXF35E / RXF35E",
-  },
-  {
-    id: "daikin-perfera-35",
-    brand: "Daikin",
-    name: "Perfera FTXM35R",
-    type: "mural",
-    powerKw: 3.5,
-    btu: 12000,
-    surfaceMax: 35,
-    scop: 5.1,
-    seer: 8.6,
-    price: 1390,
-    ref: "FTXM35R / RXM35R",
-  },
-  {
-    id: "daikin-perfera-console-25",
-    brand: "Daikin",
-    name: "Perfera Console FVXM25A",
-    type: "console",
-    powerKw: 2.5,
-    btu: 9000,
-    surfaceMax: 25,
-    scop: 4.6,
-    price: 1650,
-    ref: "FVXM25A / RXM25R",
-  },
-  {
-    id: "daikin-gainable-35",
-    brand: "Daikin",
-    name: "Gainable FDXM35F3",
-    type: "gainable",
-    powerKw: 3.5,
-    btu: 12000,
-    surfaceMax: 35,
-    scop: 4.0,
-    price: 1950,
-    ref: "FDXM35F3 / RXM35R",
-  },
-  {
-    id: "mitsubishi-hr-35",
-    brand: "Mitsubishi Electric",
-    name: "MSZ-HR35VF",
-    type: "mural",
-    powerKw: 3.4,
-    btu: 12000,
-    surfaceMax: 34,
-    scop: 4.0,
-    seer: 6.8,
-    price: 820,
-    ref: "MSZ-HR35VF / MUZ-HR35VF",
-  },
-  {
-    id: "mitsubishi-ap-35",
-    brand: "Mitsubishi Electric",
-    name: "MSZ-AP35VGK",
-    type: "mural",
-    powerKw: 3.5,
-    btu: 12000,
-    surfaceMax: 35,
-    scop: 4.6,
-    seer: 7.0,
-    price: 1150,
-    ref: "MSZ-AP35VGK / MUZ-AP35VG",
-  },
-  {
-    id: "atlantic-fujitsu-12",
-    brand: "Atlantic",
-    name: "Fujitsu ASYG12KPCA",
-    type: "mural",
-    powerKw: 3.4,
-    btu: 12000,
-    surfaceMax: 34,
-    scop: 4.6,
-    price: 940,
-    ref: "ASYG12KPCA / AOYG12KPCA",
-  },
-  {
-    id: "toshiba-seiya-13",
-    brand: "Toshiba",
-    name: "Seiya RAS-B13E2KVG",
-    type: "mural",
-    powerKw: 3.3,
-    btu: 12000,
-    surfaceMax: 33,
-    scop: 4.0,
-    price: 760,
-    ref: "RAS-B13E2KVG-E / RAS-13E2AVG-E",
-  },
-  {
-    id: "daikin-stylish-35",
-    brand: "Daikin",
-    name: "Stylish FTXA35B",
-    type: "mural",
-    powerKw: 3.5,
-    btu: 12000,
-    surfaceMax: 35,
-    scop: 5.1,
-    seer: 8.5,
-    price: 1490,
-    ref: "FTXA35BB/BW/BS / RXA35B",
-  },
-  {
-    id: "mitsubishi-ln-35",
-    brand: "Mitsubishi Electric",
-    name: "MSZ-LN35VG2 (Kirigamine)",
-    type: "mural",
-    powerKw: 3.5,
-    btu: 12000,
-    surfaceMax: 35,
-    scop: 5.2,
-    seer: 8.6,
-    price: 1590,
-    ref: "MSZ-LN35VG2 / MUZ-LN35VG2",
-  },
-  {
-    id: "atlantic-takao-m3-35",
-    brand: "Atlantic",
-    name: "Takao M3 35",
-    type: "mural",
-    powerKw: 3.4,
-    btu: 12000,
-    surfaceMax: 34,
-    scop: 4.6,
-    price: 990,
-    ref: "Takao M3 35 (ASYG12KMCC)",
-  },
-  {
-    id: "lg-standard-plus-12",
-    brand: "LG",
-    name: "Standard Plus PC12SQ",
-    type: "mural",
-    powerKw: 3.5,
-    btu: 12000,
-    surfaceMax: 35,
-    scop: 4.6,
-    seer: 7.0,
-    price: 820,
-    ref: "PC12SQ.NSJ / PC12SQ.UA3",
-  },
-  {
-    id: "lg-artcool-12",
-    brand: "LG",
-    name: "Artcool Mirror AC12BK",
-    type: "mural",
-    powerKw: 3.5,
-    btu: 12000,
-    surfaceMax: 35,
-    scop: 5.1,
-    seer: 8.5,
-    price: 1290,
-    ref: "AC12BK.NSJ / AC12BK.UA3",
-  },
-  {
-    id: "lg-libero-smart-09",
-    brand: "LG",
-    name: "Libero Smart MS09ET",
-    type: "mural",
-    powerKw: 2.5,
-    btu: 9000,
-    surfaceMax: 25,
-    scop: 4.4,
-    price: 690,
-    ref: "MS09ET.NSJ / MU09R.UL2",
-  },
-  {
-    id: "lg-console-12",
-    brand: "LG",
-    name: "Console UQ12F",
-    type: "console",
-    powerKw: 3.5,
-    btu: 12000,
-    surfaceMax: 35,
-    scop: 4.6,
-    price: 1490,
-    ref: "UQ12F.NA0 / UUA1.UL0",
-  },
+// Fabrique de variantes (prix TTC INDICATIFS — ⚠️ à remplacer par l'export).
+const V = (powerKw: number, btu: number, surfaceMax: number, price: number): AcVariant => ({
+  powerKw,
+  btu,
+  surfaceMax,
+  price,
+});
+// Jeux de puissances standard (2,5 / 3,5 / 5,0 kW).
+const ESSENTIEL = [V(2.5, 9000, 25, 690), V(3.5, 12000, 35, 820), V(5.0, 18000, 50, 1090)];
+const CONFORT = [V(2.5, 9000, 25, 1090), V(3.5, 12000, 35, 1290), V(5.0, 18000, 50, 1650)];
+const DESIGN = [V(2.5, 9000, 25, 1290), V(3.5, 12000, 35, 1490), V(5.0, 18000, 50, 1890)];
+const CONSOLE = [V(2.5, 9000, 25, 1450), V(3.5, 12000, 35, 1650), V(5.0, 18000, 50, 2100)];
+const GAINABLE = [V(3.5, 12000, 35, 1950), V(5.0, 18000, 50, 2400), V(7.1, 24000, 70, 3200)];
+
+// ⚠️ Gammes & PRIX INDICATIFS — à confirmer / compléter depuis l'export catalogue.
+export const AC_GAMMES: AcGamme[] = [
+  // Daikin
+  { id: "daikin-sensira", brand: "Daikin", name: "Sensira", type: "mural", scop: 4.0, tagline: "Essentiel, fiable", variants: ESSENTIEL },
+  { id: "daikin-perfera", brand: "Daikin", name: "Perfera", type: "mural", scop: 5.1, tagline: "Confort & haute performance", variants: CONFORT },
+  { id: "daikin-stylish", brand: "Daikin", name: "Stylish", type: "mural", scop: 5.1, tagline: "Design signature", variants: DESIGN },
+  { id: "daikin-perfera-console", brand: "Daikin", name: "Perfera Console", type: "console", scop: 4.6, variants: CONSOLE },
+  { id: "daikin-gainable", brand: "Daikin", name: "Gainable", type: "gainable", scop: 4.0, variants: GAINABLE },
+  // Mitsubishi Electric
+  { id: "mitsubishi-essentiel", brand: "Mitsubishi Electric", name: "MSZ-HR (Essentiel)", type: "mural", scop: 4.0, tagline: "Essentiel", variants: ESSENTIEL },
+  { id: "mitsubishi-confort", brand: "Mitsubishi Electric", name: "MSZ-AP (Confort)", type: "mural", scop: 4.6, tagline: "Confort", variants: CONFORT },
+  { id: "mitsubishi-design", brand: "Mitsubishi Electric", name: "Kirigamine (Design)", type: "mural", scop: 5.2, tagline: "Design & silence", variants: DESIGN },
+  { id: "mitsubishi-gainable", brand: "Mitsubishi Electric", name: "Gainable", type: "gainable", scop: 4.2, variants: GAINABLE },
+  // Atlantic
+  { id: "atlantic-takao", brand: "Atlantic", name: "Takao", type: "mural", scop: 4.6, tagline: "Confort", variants: CONFORT },
+  { id: "atlantic-console", brand: "Atlantic", name: "Console", type: "console", scop: 4.4, variants: CONSOLE },
+  // LG
+  { id: "lg-standard", brand: "LG", name: "Standard Plus", type: "mural", scop: 4.6, tagline: "Essentiel connecté", variants: ESSENTIEL },
+  { id: "lg-artcool", brand: "LG", name: "Artcool", type: "mural", scop: 5.1, tagline: "Design", variants: DESIGN },
+  { id: "lg-console", brand: "LG", name: "Console", type: "console", scop: 4.6, variants: CONSOLE },
+  // Toshiba
+  { id: "toshiba-seiya", brand: "Toshiba", name: "Seiya", type: "mural", scop: 4.0, tagline: "Essentiel", variants: ESSENTIEL },
+  { id: "toshiba-shorai", brand: "Toshiba", name: "Shorai Edge", type: "mural", scop: 4.6, tagline: "Confort", variants: CONFORT },
 ];
 
 // ── Tarification pose ──────────────────────────────────────────────────────

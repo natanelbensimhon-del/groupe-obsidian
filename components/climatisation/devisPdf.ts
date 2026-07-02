@@ -15,20 +15,18 @@ export type DevisData = {
   dwelling: string;
   model: {
     brand: string;
-    name: string;
+    gamme: string; // nom de gamme (sans référence technique)
     type: string;
-    ref?: string;
-    powerKw: number;
-    btu: number;
   };
+  // Lignes d'équipement (une par pièce), déjà calculées côté configurateur.
+  equipment: { label: string; sub: string; qty: number; pu: number }[];
   nbSplits: number;
   nbGroupes: number;
-  materialUnit: number; // TTC
   poseUnit: number; // TTC
   cableRouting: string;
   condensate: string;
   usage?: string;
-  rooms?: { name: string; surface?: number }[];
+  rooms?: { name: string; surface?: number; powerKw?: number }[];
   tvaRate: number;
   sims?: { title: string; sim: DevisSim }[];
 };
@@ -127,17 +125,17 @@ export async function generateDevisPdf(d: DevisData) {
   doc.setFontSize(8);
   doc.setTextColor(85, 85, 85);
   const roomsTxt = (d.rooms ?? [])
-    .filter((r) => r.name || r.surface)
+    .filter((r) => r.name || r.surface || r.powerKw)
     .map(
       (r, i) =>
-        `${r.name?.trim() || "Pièce " + (i + 1)}${r.surface ? " ~" + r.surface + " m²" : ""}`
+        `${r.name?.trim() || "Pièce " + (i + 1)}${r.surface ? " ~" + r.surface + " m²" : ""}${r.powerKw ? " (" + r.powerKw + " kW)" : ""}`
     )
     .join(", ");
   const objet =
     `Fourniture et installation d'une pompe à chaleur air/air réversible${d.usage ? " (" + d.usage.toLowerCase() + ")" : " (chauffage et climatisation)"} pour ${d.dwelling.toLowerCase()}, ` +
-    `en configuration ${d.nbGroupes} groupe(s) extérieur(s) / ${d.nbSplits} unité(s) intérieure(s), marque ${d.model.brand} (modèle ${d.model.name}` +
-    `${d.model.ref ? ", réf. " + d.model.ref : ""})` +
-    `${roomsTxt ? ". Pièces à traiter : " + roomsTxt : ""}. Passage et raccordement des liaisons frigorifiques et électriques, ` +
+    `en configuration ${d.nbGroupes} groupe(s) extérieur(s) / ${d.nbSplits} unité(s) intérieure(s), gamme ${d.model.brand} ${d.model.gamme}` +
+    `${roomsTxt ? ". Pièces à traiter : " + roomsTxt : ""}. Puissances dimensionnées selon la surface et l'isolation de chaque pièce. ` +
+    `Passage et raccordement des liaisons frigorifiques et électriques, ` +
     `évacuation des condensats (${d.condensate.toLowerCase()}), passage des câbles (${d.cableRouting.toLowerCase()}), ` +
     `tirage au vide, contrôle d'étanchéité, mise en service et essais.`;
   const objetLines = doc.splitTextToSize(objet, W - 2 * M);
@@ -193,12 +191,7 @@ export async function generateDevisPdf(d: DevisData) {
 
   tableHead();
   lot("LOT 1 — ÉQUIPEMENTS (fourniture)");
-  item(
-    `Ensemble climatisation ${d.model.brand} ${d.model.name}`,
-    `${d.nbSplits} unité(s) intérieure(s) + ${d.nbGroupes} groupe(s) extérieur(s) • ${d.model.powerKw} kW`,
-    d.nbSplits,
-    d.materialUnit
-  );
+  d.equipment.forEach((e) => item(e.label, e.sub, e.qty, e.pu));
   lot("LOT 2 — POSE, RACCORDEMENTS & MISE EN SERVICE");
   item(
     "Forfait pose & mise en service (par unité intérieure)",
@@ -208,7 +201,8 @@ export async function generateDevisPdf(d: DevisData) {
   );
 
   // Totaux
-  const ttc = d.materialUnit * d.nbSplits + d.poseUnit * d.nbSplits;
+  const ttc =
+    d.equipment.reduce((s, e) => s + e.pu * e.qty, 0) + d.poseUnit * d.nbSplits;
   const ht = ttc / (1 + d.tvaRate);
   const tva = ttc - ht;
   y += 5;

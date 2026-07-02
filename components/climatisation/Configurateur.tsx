@@ -4,17 +4,20 @@ import { useMemo, useRef, useState } from "react";
 import {
   AC_BRANDS,
   AC_TYPES,
-  AC_MODELS,
+  AC_GAMMES,
   POSE_PRICE_PER_UNIT,
   TVA_RENOVATION,
   TVA_NEUF,
   USAGE_LABELS,
   DWELLING_LABELS,
   CONDENSATE_LABELS,
+  INSULATION_LABELS,
   recommendCableRouting,
+  pickVariant,
+  gammeFrom,
   defaultUnitImage,
   defaultOutdoorImage,
-  type AcModel,
+  type AcGamme,
   type AcType,
   type WallType,
   type OutdoorProximity,
@@ -22,6 +25,7 @@ import {
   type Dwelling,
   type Condensate,
   type Usage,
+  type Insulation,
 } from "@/content/climatisation";
 import { generateDevisPdf, type DevisSim } from "./devisPdf";
 import { cn } from "@/lib/utils";
@@ -33,7 +37,7 @@ type Slot = {
   size: number;
   rot: number;
 };
-type PieceSlot = Slot & { room: string; surface?: number };
+type PieceSlot = Slot & { room: string; surface?: number; insulation?: Insulation };
 
 function imageToSim(dataUrl: string): Promise<DevisSim> {
   return loadImage(dataUrl).then((img) => ({
@@ -172,7 +176,7 @@ const inputClass =
 export function Configurateur() {
   const [brand, setBrand] = useState<string>(AC_BRANDS[0]);
   const [type, setType] = useState<AcType>("mural");
-  const [modelId, setModelId] = useState<string>("");
+  const [gammeId, setGammeId] = useState<string>("");
 
   const [pieces, setPieces] = useState<PieceSlot[]>([newPiece()]);
   const [groupes, setGroupes] = useState<Slot[]>([newGroupe()]);
@@ -211,17 +215,21 @@ export function Configurateur() {
     null
   );
 
-  const models = useMemo(
-    () => AC_MODELS.filter((m) => m.brand === brand && m.type === type),
+  const gammes = useMemo(
+    () => AC_GAMMES.filter((g) => g.brand === brand && g.type === type),
     [brand, type]
   );
-  const model: AcModel | undefined =
-    AC_MODELS.find((m) => m.id === modelId) ?? models[0];
-  const unitSrc = model?.unitImage || defaultUnitImage();
+  const gamme: AcGamme | undefined =
+    AC_GAMMES.find((g) => g.id === gammeId) ?? gammes[0];
+  const unitSrc = gamme?.unitImage || defaultUnitImage();
   const outdoorSrc = defaultOutdoorImage();
 
   const nbSplits = pieces.length;
   const nbGroupes = groupes.length;
+
+  // Variante (puissance) choisie automatiquement pour une pièce.
+  const variantFor = (p: PieceSlot) =>
+    gamme ? pickVariant(gamme, p.surface, p.insulation) : undefined;
 
   const cable = finish
     ? recommendCableRouting(wall ?? "inconnu", outdoor ?? "inconnu", finish)
@@ -239,7 +247,10 @@ export function Configurateur() {
       setGroupes((a) => a.map((s, i) => (i === activeIndex ? { ...s, ...upd } : s)));
   };
 
-  const materialTotal = (model?.price ?? 0) * nbSplits;
+  const materialTotal = pieces.reduce(
+    (s, p) => s + (variantFor(p)?.price ?? 0),
+    0
+  );
   const poseTotal = POSE_PRICE_PER_UNIT * nbSplits;
   const grandTotal = materialTotal + poseTotal;
   const tvaRate = oldEnough === false ? TVA_NEUF : TVA_RENOVATION;
@@ -291,7 +302,7 @@ export function Configurateur() {
   }
 
   async function generateRender() {
-    if (!active.photo || !model) return;
+    if (!active.photo || !gamme) return;
     if (!aiConsent) {
       setAiError("Merci d'accepter l'envoi de la photo au service d'IA.");
       return;
@@ -304,8 +315,8 @@ export function Configurateur() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           image: active.photo,
-          brand: model.brand,
-          model: model.name,
+          brand: gamme.brand,
+          model: gamme.name,
           kind: sel.kind,
         }),
       });
@@ -329,7 +340,7 @@ export function Configurateur() {
 
   async function downloadDevis() {
     setDevisError("");
-    if (!model) return;
+    if (!gamme) return;
     if (!client.prenom.trim() || !client.nom.trim())
       return setDevisError("Merci d'indiquer votre nom et prénom.");
     if (!client.tel.trim())
@@ -373,27 +384,38 @@ export function Configurateur() {
         if (s) sims.push({ title: `Groupe extérieur ${i + 1}`, sim: s });
       });
 
+      const equipment = pieces.map((p, i) => {
+        const v = variantFor(p);
+        return {
+          label: `Unité intérieure ${gamme.brand} ${gamme.name} — ${v?.powerKw ?? "?"} kW`,
+          sub: `${p.room?.trim() || "Pièce " + (i + 1)}${p.surface ? " ~" + p.surface + " m²" : ""} • intérieure + quote-part groupe extérieur`,
+          qty: 1,
+          pu: v?.price ?? 0,
+        };
+      });
+
       await generateDevisPdf({
         numero,
         date: dateFr,
         client,
         dwelling: dwellingLabel,
         model: {
-          brand: model.brand,
-          name: model.name,
+          brand: gamme.brand,
+          gamme: gamme.name,
           type: AC_TYPES.find((t) => t.id === type)?.label ?? type,
-          ref: model.ref,
-          powerKw: model.powerKw,
-          btu: model.btu,
         },
+        equipment,
         nbSplits,
         nbGroupes,
-        materialUnit: model.price,
         poseUnit: POSE_PRICE_PER_UNIT,
         cableRouting: cableLabel,
         condensate: condensateLabel,
         usage: usage ? USAGE_LABELS[usage] : undefined,
-        rooms: pieces.map((p) => ({ name: p.room, surface: p.surface })),
+        rooms: pieces.map((p) => ({
+          name: p.room,
+          surface: p.surface,
+          powerKw: variantFor(p)?.powerKw,
+        })),
         tvaRate,
         sims,
       });
@@ -406,7 +428,7 @@ export function Configurateur() {
           type: "Climatisation résidentielle",
           logement: dwellingLabel,
           usage: usage ? USAGE_LABELS[usage] : undefined,
-          modele: `${model.brand} ${model.name}`,
+          modele: `${gamme.brand} ${gamme.name}`,
           splits: nbSplits,
           groupes: nbGroupes,
           passageCables: cableLabel,
@@ -454,7 +476,7 @@ export function Configurateur() {
                   key={b}
                   onClick={() => {
                     setBrand(b);
-                    setModelId("");
+                    setGammeId("");
                   }}
                   data-cursor="hover"
                   className={cn(
@@ -478,7 +500,7 @@ export function Configurateur() {
                   key={t.id}
                   onClick={() => {
                     setType(t.id);
-                    setModelId("");
+                    setGammeId("");
                   }}
                   data-cursor="hover"
                   title={t.desc}
@@ -496,38 +518,38 @@ export function Configurateur() {
           </div>
 
           <div>
-            <p className="label mb-3">3 · Modèle</p>
-            {models.length === 0 ? (
+            <p className="label mb-3">3 · Gamme</p>
+            {gammes.length === 0 ? (
               <p className="text-sm text-ash-400">
-                Aucun modèle {type} référencé pour {brand} pour l&apos;instant.
+                Aucune gamme {type} pour {brand} pour l&apos;instant.
               </p>
             ) : (
               <div className="flex flex-col gap-2">
-                {models.map((m) => {
-                  const activeM = model?.id === m.id;
+                {gammes.map((g) => {
+                  const activeG = gamme?.id === g.id;
                   return (
                     <button
-                      key={m.id}
-                      onClick={() => setModelId(m.id)}
+                      key={g.id}
+                      onClick={() => setGammeId(g.id)}
                       data-cursor="hover"
                       className={cn(
                         "rounded-xl border p-4 text-left transition-colors",
-                        activeM
+                        activeG
                           ? "border-white/40 bg-white/[0.06]"
                           : "border-white/10 hover:border-white/25"
                       )}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-sm font-medium text-ash-100">
-                          {m.name}
+                          {g.name}
                         </span>
-                        <span className="whitespace-nowrap text-sm text-glow">
-                          {eur(m.price)}
+                        <span className="whitespace-nowrap text-xs text-glow">
+                          dès {eur(gammeFrom(g))}
                         </span>
                       </div>
                       <div className="mt-1 text-xs text-ash-400">
-                        {m.powerKw} kW · ~{m.surfaceMax} m²
-                        {m.scop ? ` · SCOP ${m.scop}` : ""}
+                        {g.tagline ? g.tagline : g.brand}
+                        {g.scop ? ` · SCOP ${g.scop}` : ""}
                       </div>
                     </button>
                   );
@@ -535,8 +557,8 @@ export function Configurateur() {
               </div>
             )}
             <p className="mt-3 text-[11px] leading-relaxed text-ash-500">
-              Prix publics indicatifs TTC du matériel — à confirmer selon
-              l&apos;étude technique (configuration bi/tri-split).
+              La puissance est déterminée automatiquement pour chaque pièce
+              (surface + isolation). Prix indicatifs TTC — confirmés après étude.
             </p>
           </div>
 
@@ -747,10 +769,10 @@ export function Configurateur() {
             })}
           </div>
 
-          {/* Nom de la pièce (unités intérieures) */}
+          {/* Pièce (unités intérieures) : nom, surface, isolation → puissance auto */}
           {sel.kind === "int" && (
             <div className="flex flex-col gap-2">
-              <div className="grid grid-cols-[1fr_120px] gap-2">
+              <div className="grid grid-cols-[1fr_110px] gap-2">
                 <input
                   className={inputClass}
                   placeholder="Nom de la pièce (ex : Salon)"
@@ -772,15 +794,45 @@ export function Configurateur() {
                   }
                 />
               </div>
-              {model &&
-                (active as PieceSlot).surface &&
-                ((active as PieceSlot).surface as number) > model.surfaceMax && (
-                  <p className="text-[11px] text-amber-300/90">
-                    Pour ~{(active as PieceSlot).surface} m², une puissance
-                    supérieure à {model.name} ({model.powerKw} kW) sera
-                    probablement conseillée — à valider en visite.
-                  </p>
-                )}
+              <div className="grid grid-cols-3 gap-2">
+                {(["bonne", "moyenne", "faible"] as Insulation[]).map((ins) => (
+                  <button
+                    key={ins}
+                    onClick={() =>
+                      updateActive({ insulation: ins } as Partial<Slot>)
+                    }
+                    data-cursor="hover"
+                    title={INSULATION_LABELS[ins]}
+                    className={cn(
+                      "rounded-lg border px-2 py-2 text-center text-[11px] capitalize transition-colors",
+                      (active as PieceSlot).insulation === ins
+                        ? "border-white/40 bg-white/10 text-white"
+                        : "border-white/10 text-ash-300 hover:border-white/25"
+                    )}
+                  >
+                    {ins === "bonne"
+                      ? "Bien isolé"
+                      : ins === "moyenne"
+                        ? "Moyen"
+                        : "Peu isolé"}
+                  </button>
+                ))}
+              </div>
+              {gamme &&
+                (() => {
+                  const v = variantFor(active as PieceSlot);
+                  const p = active as PieceSlot;
+                  if (!v) return null;
+                  return (
+                    <p className="text-[11px] text-glow">
+                      Puissance recommandée : <strong>{v.powerKw} kW</strong>
+                      {p.surface && p.insulation
+                        ? ` (${p.surface} m², isolation ${p.insulation})`
+                        : " — précisez surface + isolation pour affiner"}{" "}
+                      · {gamme.name} {v.powerKw} kW
+                    </p>
+                  );
+                })()}
             </div>
           )}
 
@@ -970,11 +1022,11 @@ export function Configurateur() {
         <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
           <div>
             <p className="label mb-5">Votre estimation</p>
-            {model && (
+            {gamme && (
               <div className="flex flex-col gap-3 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-ash-300">
-                    {model.brand} {model.name} — {nbSplits} split(s)
+                    {gamme.brand} {gamme.name} — {nbSplits} split(s)
                   </span>
                   <span className="text-ash-100">{eur(materialTotal)}</span>
                 </div>
