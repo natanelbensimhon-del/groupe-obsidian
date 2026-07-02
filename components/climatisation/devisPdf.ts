@@ -18,11 +18,10 @@ export type DevisData = {
     gamme: string; // nom de gamme (sans référence technique)
     type: string;
   };
-  // Lignes d'équipement (une par pièce), déjà calculées côté configurateur.
-  equipment: { label: string; sub: string; qty: number; pu: number }[];
   nbSplits: number;
   nbGroupes: number;
-  poseUnit: number; // TTC
+  unitPrice: number; // TTC par unité intérieure
+  extraGroupPrice: number; // TTC par groupe extérieur supplémentaire
   cableRouting: string;
   condensate: string;
   usage?: string;
@@ -142,8 +141,18 @@ export async function generateDevisPdf(d: DevisData) {
   doc.text(objetLines, M, y);
   y += objetLines.length * 3.7 + 4;
 
-  // ── Tableau (LOTS) ──
-  const tableHead = () => {
+  // ── Tableau détaillé (LOTS) ──
+  const BOTTOM = 276;
+  const nbS = Math.max(1, d.nbSplits);
+  const nbG = Math.max(1, d.nbGroupes);
+  const ttc = Math.round(
+    d.unitPrice * d.nbSplits + d.extraGroupPrice * Math.max(0, d.nbGroupes - 1)
+  );
+  const ht = ttc / (1 + d.tvaRate);
+  const tva = ttc - ht;
+  const A = (w: number) => Math.round(ht * w * 100) / 100; // montant HT d'un poids
+
+  const drawHeadRow = () => {
     doc.setFillColor(10, 11, 13);
     doc.rect(M, y, W - 2 * M, 7, "F");
     doc.setTextColor(255, 255, 255);
@@ -151,11 +160,31 @@ export async function generateDevisPdf(d: DevisData) {
     doc.setFontSize(7.8);
     doc.text("DÉSIGNATION", M + 2, y + 4.7);
     doc.text("QTÉ", COL.qte, y + 4.7, { align: "center" });
-    doc.text("P.U. TTC", COL.pu, y + 4.7, { align: "right" });
-    doc.text("MONTANT TTC", COL.tot - 2, y + 4.7, { align: "right" });
+    doc.text("P.U. HT", COL.pu, y + 4.7, { align: "right" });
+    doc.text("MONTANT HT", COL.tot - 2, y + 4.7, { align: "right" });
     y += 7;
   };
+  const contPage = () => {
+    doc.addPage();
+    doc.setFillColor(10, 11, 13);
+    doc.rect(0, 0, W, 14, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("GROUPE OBSIDIAN", M, 9.5);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(180, 185, 192);
+    doc.text(`Devis ${d.numero} — suite`, W - M, 9.5, { align: "right" });
+    foot(doc);
+    y = 22;
+    drawHeadRow();
+  };
+  const ensure = (h: number) => {
+    if (y + h > BOTTOM) contPage();
+  };
   const lot = (title: string) => {
+    ensure(9);
     doc.setFillColor(232, 235, 239);
     doc.rect(M, y, W - 2 * M, 6, "F");
     doc.setTextColor(30, 30, 30);
@@ -164,48 +193,89 @@ export async function generateDevisPdf(d: DevisData) {
     doc.text(title, M + 2, y + 4);
     y += 6;
   };
-  const item = (
-    label: string,
-    sub: string,
-    qte: number,
-    pu: number
-  ) => {
-    const h = 12;
-    doc.setTextColor(40, 40, 40);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.4);
-    doc.text(label, M + 2, y + 5, { maxWidth: COL.qte - M - 6 });
+  const item = (label: string, qte: number, pu: number, twoLine = false) => {
+    const h = twoLine ? 9 : 6.5;
+    ensure(h);
+    doc.setTextColor(45, 45, 45);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
-    doc.setTextColor(120, 120, 120);
-    doc.text(sub, M + 2, y + 9, { maxWidth: COL.qte - M - 6 });
-    doc.setTextColor(40, 40, 40);
-    doc.setFontSize(8.4);
-    doc.text(String(qte), COL.qte, y + 6.5, { align: "center" });
-    doc.text(eur(pu), COL.pu, y + 6.5, { align: "right" });
-    doc.text(eur(pu * qte), COL.tot - 2, y + 6.5, { align: "right" });
-    y += h;
-    doc.setDrawColor(228, 230, 234);
+    doc.setFontSize(7.9);
+    const lines = doc.splitTextToSize(label, COL.qte - M - 8);
+    doc.text(lines, M + 2, y + 4);
+    doc.text(String(qte), COL.qte, y + 4, { align: "center" });
+    doc.text(eur(pu), COL.pu, y + 4, { align: "right" });
+    doc.text(eur(pu * qte), COL.tot - 2, y + 4, { align: "right" });
+    y += Math.max(h, lines.length * 3.4 + 2.5);
+    doc.setDrawColor(232, 234, 238);
     doc.line(M, y, W - M, y);
   };
+  const subtotal = (label: string, amount: number) => {
+    ensure(6);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.6);
+    doc.setTextColor(60, 60, 60);
+    doc.text(label, COL.pu, y + 4, { align: "right" });
+    doc.text(eur(amount), COL.tot - 2, y + 4, { align: "right" });
+    y += 6;
+  };
 
-  tableHead();
-  lot("LOT 1 — ÉQUIPEMENTS (fourniture)");
-  d.equipment.forEach((e) => item(e.label, e.sub, e.qty, e.pu));
-  lot("LOT 2 — POSE, RACCORDEMENTS & MISE EN SERVICE");
+  drawHeadRow();
+
+  // LOT 1 — Équipements
+  lot("LOT 1 — ÉQUIPEMENTS PAC AIR/AIR (fourniture)");
+  const perUnit = A(0.25) / nbS;
+  const perGroup = A(0.18) / nbG;
   item(
-    "Forfait pose & mise en service (par unité intérieure)",
-    "Liaisons frigorifiques, câblage, fixations, accessoires, tirage au vide, contrôle d'étanchéité, essais",
-    d.nbSplits,
-    d.poseUnit
+    `Groupe(s) extérieur(s) ${d.model.brand} multi-split (R32)`,
+    d.nbGroupes,
+    perGroup
   );
+  const rooms = d.rooms ?? [];
+  for (let i = 0; i < nbS; i++) {
+    const r = rooms[i];
+    const room = r?.name?.trim() || `Pièce ${i + 1}`;
+    const pw = r?.powerKw ? ` — ${r.powerKw} kW` : "";
+    item(`Unité intérieure ${d.model.brand} ${d.model.gamme}${pw} — ${room}`, 1, perUnit);
+  }
+  item("Équerres / supports de fixation + plots antivibratiles", 1, A(0.03));
+  subtotal("Sous-total LOT 1", A(0.46));
+
+  // LOT 2 — Liaisons frigorifiques
+  lot("LOT 2 — LIAISONS FRIGORIFIQUES (fourniture)");
+  item("Liaisons frigorifiques cuivre pré-isolé + isolation (par unité)", nbS, A(0.05) / nbS);
+  item("Raccords, dudgeons et accessoires frigorifiques", nbG, A(0.02) / nbG);
+  subtotal("Sous-total LOT 2", A(0.07));
+
+  // LOT 3 — Réseau électrique
+  lot("LOT 3 — RÉSEAU ÉLECTRIQUE ET RÉGULATION (fourniture)");
+  item("Câbles de liaison / commande et d'alimentation", nbS, A(0.035) / nbS);
+  item("Disjoncteur dédié + protection différentielle au tableau", nbG, A(0.015) / nbG);
+  item("Goulottes PVC et fourreaux de cheminement", 1, A(0.01));
+  subtotal("Sous-total LOT 3", A(0.06));
+
+  // LOT 4 — Condensats
+  lot("LOT 4 — ÉVACUATION DES CONDENSATS (fourniture)");
+  item(`Évacuation des condensats (${d.condensate.toLowerCase()}), tubes et accessoires`, 1, A(0.04));
+  subtotal("Sous-total LOT 4", A(0.04));
+
+  // LOT 5 — Main d'œuvre
+  lot("LOT 5 — MAIN-D'ŒUVRE ET PRESTATIONS DE POSE");
+  item("Étude technique, dimensionnement et implantation", 1, A(0.03));
+  item("Pose et fixation des groupes extérieurs", nbG, A(0.05) / nbG);
+  item("Pose et fixation des unités intérieures", nbS, A(0.08) / nbS);
+  item("Perçages, carottages, traversées et cheminement des liaisons", 1, A(0.06));
+  item("Raccordements frigorifiques et électriques (dudgeonnage, ligne dédiée)", 1, A(0.05));
+  item("Tirage au vide, contrôle d'étanchéité, charge R32, mise en service et essais", 1, A(0.04), true);
+  subtotal("Sous-total LOT 5", A(0.31));
+
+  // LOT 6 — Prestations complémentaires
+  lot("LOT 6 — PRESTATIONS COMPLÉMENTAIRES");
+  item("Déplacements et acheminement du matériel", 1, A(0.035));
+  item("PV de mise en service, attestation fluides frigorigènes, dossier remis", 1, A(0.025), true);
+  subtotal("Sous-total LOT 6", A(0.06));
 
   // Totaux
-  const ttc =
-    d.equipment.reduce((s, e) => s + e.pu * e.qty, 0) + d.poseUnit * d.nbSplits;
-  const ht = ttc / (1 + d.tvaRate);
-  const tva = ttc - ht;
-  y += 5;
+  ensure(24);
+  y += 3;
   const right = (label: string, val: string, bold = false, size = 8.6) => {
     doc.setFont("helvetica", bold ? "bold" : "normal");
     doc.setFontSize(size);
@@ -214,34 +284,23 @@ export async function generateDevisPdf(d: DevisData) {
     doc.text(val, COL.tot - 2, y, { align: "right" });
     y += bold ? 6.5 : 5;
   };
+  right("Sous-total travaux HT", eur(ht));
   right("Total HT", eur(ht));
   right(`TVA ${Math.round(d.tvaRate * 100)} %`, eur(tva));
   right("TOTAL TTC", eur(ttc), true, 10.5);
-
-  // Prestations incluses
-  y += 3;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.4);
-  doc.setTextColor(40, 40, 40);
-  doc.text("Prestations incluses (clé en main)", M, y);
-  y += 4.5;
+  y += 2;
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.4);
-  doc.setTextColor(95, 95, 95);
-  [
-    "Étude technique, dimensionnement et implantation ; pose des unités intérieures et des groupes extérieurs",
-    "Liaisons frigorifiques (cuivre), câblage de liaison, raccordements électriques dédiés, fixations et supports",
-    `Passage des câbles : ${d.cableRouting} • Évacuation des condensats : ${d.condensate}`,
-    "Tirage au vide, contrôle d'étanchéité, charge fluide R32, mise en service, réglages et essais",
-  ].forEach((l) => {
-    doc.text("•", M, y);
-    const lines = doc.splitTextToSize(l, W - 2 * M - 4);
-    doc.text(lines, M + 4, y);
-    y += lines.length * 3.6 + 0.8;
-  });
+  doc.setFontSize(7);
+  doc.setTextColor(120, 120, 120);
+  doc.text(
+    "Montant clé en main, fourni-posé : matériel, pose et mise en service inclus.",
+    M,
+    y
+  );
+  y += 4;
 
   // Échéancier + Qualifications (deux colonnes)
-  y += 3;
+  ensure(40);
   doc.setDrawColor(220, 222, 226);
   doc.line(M, y, W - M, y);
   y += 4.5;
@@ -282,6 +341,7 @@ export async function generateDevisPdf(d: DevisData) {
   y = Math.max(y + 12, qy) + 3;
 
   // Mentions
+  ensure(28);
   doc.setDrawColor(220, 222, 226);
   doc.line(M, y, W - M, y);
   y += 4;
@@ -350,5 +410,10 @@ export async function generateDevisPdf(d: DevisData) {
     }
   }
 
-  doc.save(`devis-obsidian-${d.numero}.pdf`);
+  const filename = `devis-obsidian-${d.numero}.pdf`;
+  doc.save(filename);
+  // base64 (sans le préfixe data:) pour l'envoi email en pièce jointe.
+  const dataUri = doc.output("datauristring");
+  const base64 = dataUri.split(",")[1] ?? "";
+  return { filename, base64 };
 }

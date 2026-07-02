@@ -34,8 +34,33 @@ export type AcGamme = {
   scop?: number;
   tagline?: string;
   variants: AcVariant[]; // triées par puissance croissante
-  unitImage?: string; // /climatisation/xxx.png (détourée) — sinon silhouette
+  unitImage?: string; // silhouette overlay (détourée) — sinon générique
+  photo?: string; // 🖼️ photo produit de la gamme montrée au client
+  // ex: "/climatisation/gammes/daikin-stylish.jpg" (à déposer dans /public)
 };
+
+// ── Tarification client (forfait par unité intérieure + groupe suppl.) ──────
+// ⚠️ TTC par unité intérieure, selon la marque. À ajuster librement.
+export const PRICE_PER_INTERIOR_UNIT: Record<string, number> = {
+  Daikin: 3500,
+  "Mitsubishi Electric": 3500,
+  Atlantic: 3200,
+  LG: 3200,
+  Toshiba: 3000,
+};
+export const DEFAULT_UNIT_PRICE = 3500;
+// Supplément TTC par groupe extérieur au-delà du premier.
+export const EXTRA_GROUP_PRICE = 2000;
+
+export function unitPriceFor(brand: string): number {
+  return PRICE_PER_INTERIOR_UNIT[brand] ?? DEFAULT_UNIT_PRICE;
+}
+export function totalTTC(brand: string, nbSplits: number, nbGroupes: number): number {
+  return (
+    unitPriceFor(brand) * nbSplits +
+    EXTRA_GROUP_PRICE * Math.max(0, nbGroupes - 1)
+  );
+}
 
 // ── Isolation & dimensionnement automatique de la puissance ────────────────
 export type Insulation = "bonne" | "moyenne" | "faible";

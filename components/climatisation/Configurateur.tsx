@@ -5,7 +5,8 @@ import {
   AC_BRANDS,
   AC_TYPES,
   AC_GAMMES,
-  POSE_PRICE_PER_UNIT,
+  EXTRA_GROUP_PRICE,
+  unitPriceFor,
   TVA_RENOVATION,
   TVA_NEUF,
   USAGE_LABELS,
@@ -14,7 +15,6 @@ import {
   INSULATION_LABELS,
   recommendCableRouting,
   pickVariant,
-  gammeFrom,
   defaultUnitImage,
   defaultOutdoorImage,
   type AcGamme,
@@ -247,12 +247,9 @@ export function Configurateur() {
       setGroupes((a) => a.map((s, i) => (i === activeIndex ? { ...s, ...upd } : s)));
   };
 
-  const materialTotal = pieces.reduce(
-    (s, p) => s + (variantFor(p)?.price ?? 0),
-    0
-  );
-  const poseTotal = POSE_PRICE_PER_UNIT * nbSplits;
-  const grandTotal = materialTotal + poseTotal;
+  const unitPrice = unitPriceFor(brand);
+  const extraGroups = Math.max(0, nbGroupes - 1);
+  const grandTotal = unitPrice * nbSplits + EXTRA_GROUP_PRICE * extraGroups;
   const tvaRate = oldEnough === false ? TVA_NEUF : TVA_RENOVATION;
 
   function onFile(file?: File | null) {
@@ -384,17 +381,7 @@ export function Configurateur() {
         if (s) sims.push({ title: `Groupe extérieur ${i + 1}`, sim: s });
       });
 
-      const equipment = pieces.map((p, i) => {
-        const v = variantFor(p);
-        return {
-          label: `Unité intérieure ${gamme.brand} ${gamme.name} — ${v?.powerKw ?? "?"} kW`,
-          sub: `${p.room?.trim() || "Pièce " + (i + 1)}${p.surface ? " ~" + p.surface + " m²" : ""} • intérieure + quote-part groupe extérieur`,
-          qty: 1,
-          pu: v?.price ?? 0,
-        };
-      });
-
-      await generateDevisPdf({
+      const pdf = await generateDevisPdf({
         numero,
         date: dateFr,
         client,
@@ -404,10 +391,10 @@ export function Configurateur() {
           gamme: gamme.name,
           type: AC_TYPES.find((t) => t.id === type)?.label ?? type,
         },
-        equipment,
         nbSplits,
         nbGroupes,
-        poseUnit: POSE_PRICE_PER_UNIT,
+        unitPrice,
+        extraGroupPrice: EXTRA_GROUP_PRICE,
         cableRouting: cableLabel,
         condensate: condensateLabel,
         usage: usage ? USAGE_LABELS[usage] : undefined,
@@ -420,6 +407,7 @@ export function Configurateur() {
         sims,
       });
 
+      // Envoi du lead + PDF à l'équipe (email), sans bloquer le téléchargement.
       fetch("/api/devis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -435,6 +423,8 @@ export function Configurateur() {
           condensats: condensateLabel,
           totalEstimatif: grandTotal,
           numero,
+          pdfBase64: pdf?.base64,
+          pdfFilename: pdf?.filename,
         }),
       }).catch(() => {});
       setDevisStatus("done");
@@ -533,24 +523,29 @@ export function Configurateur() {
                       onClick={() => setGammeId(g.id)}
                       data-cursor="hover"
                       className={cn(
-                        "rounded-xl border p-4 text-left transition-colors",
+                        "flex items-center gap-3 rounded-xl border p-3 text-left transition-colors",
                         activeG
                           ? "border-white/40 bg-white/[0.06]"
                           : "border-white/10 hover:border-white/25"
                       )}
                     >
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-sm font-medium text-ash-100">
+                      <span className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-obsidian-900">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={g.photo || defaultUnitImage()}
+                          alt={g.name}
+                          className="h-full w-full object-contain p-1"
+                        />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium text-ash-100">
                           {g.name}
                         </span>
-                        <span className="whitespace-nowrap text-xs text-glow">
-                          dès {eur(gammeFrom(g))}
+                        <span className="mt-0.5 block text-xs text-ash-400">
+                          {g.tagline ? g.tagline : g.brand}
+                          {g.scop ? ` · SCOP ${g.scop}` : ""}
                         </span>
-                      </div>
-                      <div className="mt-1 text-xs text-ash-400">
-                        {g.tagline ? g.tagline : g.brand}
-                        {g.scop ? ` · SCOP ${g.scop}` : ""}
-                      </div>
+                      </span>
                     </button>
                   );
                 })}
@@ -1026,16 +1021,22 @@ export function Configurateur() {
               <div className="flex flex-col gap-3 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-ash-300">
-                    {gamme.brand} {gamme.name} — {nbSplits} split(s)
+                    {gamme.brand} {gamme.name} — {nbSplits} unité(s) intérieure(s)
                   </span>
-                  <span className="text-ash-100">{eur(materialTotal)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-ash-300">
-                    Forfait pose & accessoires × {nbSplits}
+                  <span className="text-ash-100">
+                    {eur(unitPrice * nbSplits)}
                   </span>
-                  <span className="text-ash-100">{eur(poseTotal)}</span>
                 </div>
+                {extraGroups > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-ash-300">
+                      Groupe(s) extérieur(s) supplémentaire(s) × {extraGroups}
+                    </span>
+                    <span className="text-ash-100">
+                      {eur(EXTRA_GROUP_PRICE * extraGroups)}
+                    </span>
+                  </div>
+                )}
                 <div className="mt-2 flex items-center justify-between border-t border-white/10 pt-4">
                   <span className="font-medium text-ash-100">
                     Total estimatif TTC
@@ -1045,10 +1046,9 @@ export function Configurateur() {
                   </span>
                 </div>
                 <p className="mt-2 text-[11px] leading-relaxed text-ash-400">
-                  {nbSplits} unité(s) intérieure(s) · {nbGroupes} groupe(s)
-                  extérieur(s). Comprend le matériel et le forfait pose (main
-                  d&apos;œuvre, liaisons, accessoires, mise en service). Montant
-                  indicatif, confirmé après visite technique.
+                  Prestation clé en main, fourni-posé : matériel, pose, liaisons,
+                  accessoires et mise en service inclus. Montant indicatif,
+                  confirmé après visite technique.
                 </p>
               </div>
             )}
