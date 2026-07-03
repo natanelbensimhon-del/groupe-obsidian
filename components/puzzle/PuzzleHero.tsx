@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Puzzle2D } from "./Puzzle2D";
+import { SceneBoundary } from "./SceneBoundary";
 import { PUZZLE_PIECES } from "@/lib/site";
 
 const PuzzleScene = dynamic(() => import("./PuzzleScene"), {
@@ -81,10 +82,23 @@ export function PuzzleHero() {
   }
 
   // Mode 3D (desktop) : hauteur fixe, label en surimpression en bas.
+  // Si la 3D échoue (GPU/contexte), on retombe automatiquement sur le 2D.
   return (
     <div className="relative h-[400px] w-full sm:h-[480px] lg:h-[560px]">
       <div className="pointer-events-none absolute inset-0 bg-radial-glow" />
-      {mode === "loading" ? <SceneSkeleton /> : <PuzzleScene onHover={setActiveId} />}
+      {mode === "loading" ? (
+        <SceneSkeleton />
+      ) : (
+        <SceneBoundary
+          fallback={
+            <div className="flex h-full w-full items-center justify-center px-2">
+              <Puzzle2D onHover={setActiveId} />
+            </div>
+          }
+        >
+          <PuzzleScene onHover={setActiveId} />
+        </SceneBoundary>
+      )}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center px-4">
         {label}
       </div>

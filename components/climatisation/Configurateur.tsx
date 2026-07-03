@@ -543,11 +543,22 @@ export function Configurateur() {
                           className="h-full w-full object-contain p-1"
                         />
                         {g.videoId && (
-                          <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-                              <path d="M8 5v14l11-7z" />
-                            </svg>
-                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setVideoId(g.videoId!);
+                            }}
+                            aria-label={`Voir la vidéo ${g.name}`}
+                            title="Voir la vidéo"
+                            data-cursor="hover"
+                            className="group/vid absolute inset-0 flex items-center justify-center bg-black/35 transition-colors hover:bg-black/55"
+                          >
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-obsidian-900 shadow transition-transform group-hover/vid:scale-110">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z" />
+                              </svg>
+                            </span>
+                          </button>
                         )}
                       </span>
                       <span className="min-w-0 flex-1">
@@ -560,16 +571,9 @@ export function Configurateur() {
                         </span>
                       </span>
                       {g.videoId && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setVideoId(g.videoId!);
-                          }}
-                          data-cursor="hover"
-                          className="shrink-0 rounded-full border border-white/15 px-3 py-1.5 text-[11px] text-ash-200 transition-colors hover:border-white/40 hover:text-white"
-                        >
+                        <span className="shrink-0 text-[11px] text-ash-400">
                           ▶ Vidéo
-                        </button>
+                        </span>
                       )}
                     </div>
                   );
