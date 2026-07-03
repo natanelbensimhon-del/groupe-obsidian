@@ -194,6 +194,7 @@ export function Configurateur() {
   const [condensate, setCondensate] = useState<Condensate | null>(null);
 
   const [downloading, setDownloading] = useState(false);
+  const [videoId, setVideoId] = useState<string | null>(null);
   const [aiConsent, setAiConsent] = useState(false);
   const [aiStatus, setAiStatus] = useState<"idle" | "loading" | "error">("idle");
   const [aiError, setAiError] = useState("");
@@ -518,26 +519,38 @@ export function Configurateur() {
                 {gammes.map((g) => {
                   const activeG = gamme?.id === g.id;
                   return (
-                    <button
+                    <div
                       key={g.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => setGammeId(g.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") setGammeId(g.id);
+                      }}
                       data-cursor="hover"
                       className={cn(
-                        "flex items-center gap-3 rounded-xl border p-3 text-left transition-colors",
+                        "flex cursor-pointer items-center gap-3 rounded-xl border p-3 text-left transition-colors",
                         activeG
                           ? "border-white/40 bg-white/[0.06]"
                           : "border-white/10 hover:border-white/25"
                       )}
                     >
-                      <span className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-obsidian-900">
+                      <span className="relative flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-obsidian-900">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={g.photo || defaultUnitImage()}
                           alt={g.name}
                           className="h-full w-full object-contain p-1"
                         />
+                        {g.videoId && (
+                          <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </span>
+                        )}
                       </span>
-                      <span className="min-w-0">
+                      <span className="min-w-0 flex-1">
                         <span className="block text-sm font-medium text-ash-100">
                           {g.name}
                         </span>
@@ -546,7 +559,19 @@ export function Configurateur() {
                           {g.scop ? ` · SCOP ${g.scop}` : ""}
                         </span>
                       </span>
-                    </button>
+                      {g.videoId && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setVideoId(g.videoId!);
+                          }}
+                          data-cursor="hover"
+                          className="shrink-0 rounded-full border border-white/15 px-3 py-1.5 text-[11px] text-ash-200 transition-colors hover:border-white/40 hover:text-white"
+                        >
+                          ▶ Vidéo
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
               </div>
@@ -1128,6 +1153,37 @@ export function Configurateur() {
           </div>
         </div>
       </div>
+
+      {/* Lightbox vidéo (lecteur intégré, sans quitter le site) */}
+      {videoId && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          onClick={() => setVideoId(null)}
+        >
+          <div
+            className="relative w-full max-w-3xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setVideoId(null)}
+              aria-label="Fermer la vidéo"
+              className="absolute -top-10 right-0 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 text-white hover:bg-white/10"
+              data-cursor="hover"
+            >
+              ✕
+            </button>
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black pt-[56.25%]">
+              <iframe
+                className="absolute inset-0 h-full w-full"
+                src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+                title="Vidéo produit"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
