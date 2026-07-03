@@ -535,7 +535,12 @@ export function Configurateur() {
                           : "border-white/10 hover:border-white/25"
                       )}
                     >
-                      <span className="relative flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-obsidian-900">
+                      <span
+                        className={cn(
+                          "relative flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10",
+                          g.photo ? "bg-white" : "bg-obsidian-900"
+                        )}
+                      >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={g.photo || defaultUnitImage()}

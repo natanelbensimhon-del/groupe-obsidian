@@ -125,19 +125,19 @@ const GAINABLE = [V(3.5, 12000, 35, 1950), V(5.0, 18000, 50, 2400), V(7.1, 24000
 // ⚠️ Gammes & PRIX INDICATIFS — à confirmer / compléter depuis l'export catalogue.
 export const AC_GAMMES: AcGamme[] = [
   // Daikin
-  { id: "daikin-sensira", brand: "Daikin", name: "Sensira", type: "mural", scop: 4.0, tagline: "Essentiel, fiable", variants: ESSENTIEL },
-  { id: "daikin-perfera", brand: "Daikin", name: "Perfera", type: "mural", scop: 5.1, tagline: "Confort & haute performance", variants: CONFORT },
-  { id: "daikin-stylish", brand: "Daikin", name: "Stylish", type: "mural", scop: 5.1, tagline: "Design signature", variants: DESIGN, videoId: "dYoO5SweWfc" },
+  { id: "daikin-sensira", brand: "Daikin", name: "Sensira", type: "mural", scop: 4.0, tagline: "Essentiel, fiable", variants: ESSENTIEL, photo: "/climatisation/gammes/daikin-sensira.jpg" },
+  { id: "daikin-perfera", brand: "Daikin", name: "Perfera", type: "mural", scop: 5.1, tagline: "Confort & haute performance", variants: CONFORT, photo: "/climatisation/gammes/daikin-perfera.png" },
+  { id: "daikin-stylish", brand: "Daikin", name: "Stylish", type: "mural", scop: 5.1, tagline: "Design signature", variants: DESIGN, videoId: "dYoO5SweWfc", photo: "/climatisation/gammes/daikin-stylish.jpg" },
   { id: "daikin-emura", brand: "Daikin", name: "Emura", type: "mural", scop: 5.1, tagline: "Design premium", variants: DESIGN, videoId: "zWORzE8fiMY" },
   { id: "daikin-perfera-console", brand: "Daikin", name: "Perfera Console", type: "console", scop: 4.6, variants: CONSOLE },
   { id: "daikin-gainable", brand: "Daikin", name: "Gainable", type: "gainable", scop: 4.0, variants: GAINABLE },
   // Mitsubishi Electric
   { id: "mitsubishi-essentiel", brand: "Mitsubishi Electric", name: "Mural Essentiel (MSZ-HR)", type: "mural", scop: 4.0, tagline: "Essentiel", variants: ESSENTIEL, videoId: "BiHY56LKn7c" },
-  { id: "mitsubishi-compact", brand: "Mitsubishi Electric", name: "Mural Compact (MSZ-AP)", type: "mural", scop: 4.6, tagline: "Compact & confort", variants: CONFORT, videoId: "W2H-F963aSs" },
-  { id: "mitsubishi-design", brand: "Mitsubishi Electric", name: "Kirigamine (Design)", type: "mural", scop: 5.2, tagline: "Design & silence", variants: DESIGN },
+  { id: "mitsubishi-compact", brand: "Mitsubishi Electric", name: "Mural Compact (MSZ-AP)", type: "mural", scop: 4.6, tagline: "Compact & confort", variants: CONFORT, videoId: "W2H-F963aSs", photo: "/climatisation/gammes/mitsubishi-compact.jpg" },
+  { id: "mitsubishi-design", brand: "Mitsubishi Electric", name: "Kirigamine (Design)", type: "mural", scop: 5.2, tagline: "Design & silence", variants: DESIGN, photo: "/climatisation/gammes/mitsubishi-kirigamine.jpg" },
   { id: "mitsubishi-gainable", brand: "Mitsubishi Electric", name: "Gainable", type: "gainable", scop: 4.2, variants: GAINABLE },
   // Atlantic
-  { id: "atlantic-takao", brand: "Atlantic", name: "Takao", type: "mural", scop: 4.6, tagline: "Confort", variants: CONFORT },
+  { id: "atlantic-takao", brand: "Atlantic", name: "Takao", type: "mural", scop: 4.6, tagline: "Confort", variants: CONFORT, photo: "/climatisation/gammes/atlantic-takao.png" },
   { id: "atlantic-console", brand: "Atlantic", name: "Console", type: "console", scop: 4.4, variants: CONSOLE },
   // LG
   { id: "lg-standard", brand: "LG", name: "Smart Inverter", type: "mural", scop: 4.6, tagline: "Essentiel connecté", variants: ESSENTIEL, videoId: "OG4rKO043Q4" },
