@@ -16,6 +16,9 @@ export const SITE = {
   contact: {
     phone: "01 80 97 57 21",
     phoneHref: "tel:+33180975721",
+    // Ligne commerciale mise en avant sur la landing climatisation.
+    mobile: "06 05 53 10 04",
+    mobileHref: "tel:+33605531004",
     email: "contact@groupe-obsidian.fr",
     address: "313 Avenue Georges Clemenceau, 78670 Villennes-sur-Seine",
     whatsapp: "+33 6 29 85 28 08",

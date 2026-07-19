@@ -29,6 +29,11 @@ export function Navbar() {
     };
   }, [open]);
 
+  // Landing pages publicitaires : header global masqué (chrome dédié).
+  if (pathname === "/climatisation-reversible" || pathname === "/merci-climatisation") {
+    return null;
+  }
+
   return (
     <>
       <header

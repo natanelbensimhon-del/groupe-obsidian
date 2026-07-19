@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { SITE } from "@/lib/site";
 import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { ConditionalFooter } from "@/components/layout/ConditionalFooter";
 import { CustomCursor } from "@/components/ui/CustomCursor";
 import { PageTransition } from "@/components/layout/PageTransition";
 
@@ -69,7 +69,7 @@ export default function RootLayout({
         <CustomCursor />
         <Navbar />
         <PageTransition>{children}</PageTransition>
-        <Footer />
+        <ConditionalFooter />
       </body>
     </html>
   );
