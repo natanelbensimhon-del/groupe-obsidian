@@ -25,6 +25,13 @@ export const REALISATIONS: Realisation[] = [
     kind: "Intérieure",
   },
   {
+    src: "/realisations/daikin-stylish-gris.jpg",
+    title: "Daikin Stylish — finition grise",
+    caption: "Unité murale Stylish gris anthracite, pose épurée en angle.",
+    brand: "Daikin",
+    kind: "Intérieure",
+  },
+  {
     src: "/realisations/daikin-emura-1.jpg",
     title: "Daikin Emura",
     caption: "Unité murale design premium, intégration nette sur lambris.",
