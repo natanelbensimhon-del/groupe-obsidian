@@ -32,6 +32,13 @@ export const REALISATIONS: Realisation[] = [
     kind: "Intérieure",
   },
   {
+    src: "/realisations/airwell-interieur-1.jpg",
+    title: "Airwell — unité murale",
+    caption: "Split intérieur posé au-dessus d'une étagère, intégration dans un intérieur soigné.",
+    brand: "Airwell",
+    kind: "Intérieure",
+  },
+  {
     src: "/realisations/mitsubishi-exterieur-1.jpg",
     title: "Groupe extérieur Mitsubishi",
     caption: "Unité extérieure posée sur équerres, sous débord de toiture.",
