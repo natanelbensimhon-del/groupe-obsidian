@@ -41,7 +41,7 @@ const jsonLd = {
       "@id": `${LP_URL}#business`,
       name: SITE.name,
       url: LP_URL,
-      telephone: "+33605531004",
+      telephone: "+33180975721",
       email: SITE.contact.email,
       areaServed: "Île-de-France",
       address: {
@@ -171,8 +171,8 @@ export default function LandingClimatisation() {
               <a href="#devis" className="btn-primary" data-cursor="hover">
                 Demander ma prévisite technique
               </a>
-              <a href={SITE.contact.mobileHref} className="btn-ghost" data-cursor="hover">
-                Appeler le {SITE.contact.mobile}
+              <a href={SITE.contact.phoneHref} className="btn-ghost" data-cursor="hover">
+                Appeler le {SITE.contact.phone}
               </a>
             </div>
             <p className="mt-3 text-xs text-ash-400">
@@ -351,8 +351,8 @@ export default function LandingClimatisation() {
             <a href="#devis" className="btn-primary" data-cursor="hover">
               Demander ma prévisite
             </a>
-            <a href={SITE.contact.mobileHref} className="btn-ghost" data-cursor="hover">
-              Appeler le {SITE.contact.mobile}
+            <a href={SITE.contact.phoneHref} className="btn-ghost" data-cursor="hover">
+              Appeler le {SITE.contact.phone}
             </a>
           </div>
         </div>
@@ -380,9 +380,6 @@ export default function LandingClimatisation() {
           </div>
           <div className="text-sm text-ash-200">
             <p className="label mb-3">Contact</p>
-            <a href={SITE.contact.mobileHref} className="block hover:text-white">
-              {SITE.contact.mobile}
-            </a>
             <a href={SITE.contact.phoneHref} className="block hover:text-white">
               {SITE.contact.phone}
             </a>

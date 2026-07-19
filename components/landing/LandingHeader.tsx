@@ -13,13 +13,13 @@ export function LandingHeader() {
         </a>
         <div className="flex items-center gap-3">
           <a
-            href={SITE.contact.mobileHref}
+            href={SITE.contact.phoneHref}
             onClick={() => track("click_phone", { location: "header" })}
             data-cursor="hover"
             className="hidden items-center gap-2 text-sm font-medium text-ash-100 hover:text-white sm:flex"
           >
             <PhoneIcon />
-            {SITE.contact.mobile}
+            {SITE.contact.phone}
           </a>
           <a
             href="#devis"

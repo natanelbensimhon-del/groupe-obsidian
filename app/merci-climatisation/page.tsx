@@ -55,8 +55,8 @@ export default function MerciClimatisation() {
 
           <div className="mt-12 rounded-2xl border border-white/10 bg-white/[0.02] px-6 py-5">
             <p className="text-sm text-ash-400">Une question en attendant ?</p>
-            <a href={SITE.contact.mobileHref} className="mt-1 block font-display text-2xl font-semibold text-white hover:text-glow">
-              {SITE.contact.mobile}
+            <a href={SITE.contact.phoneHref} className="mt-1 block font-display text-2xl font-semibold text-white hover:text-glow">
+              {SITE.contact.phone}
             </a>
           </div>
 
