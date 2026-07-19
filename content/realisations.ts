@@ -18,6 +18,13 @@ export const REALISATIONS: Realisation[] = [
     kind: "Intérieure",
   },
   {
+    src: "/realisations/daikin-noir-delperier.jpg",
+    title: "Daikin — finition noire",
+    caption: "Unité murale noire, intégration élégante au-dessus des briques de verre.",
+    brand: "Daikin",
+    kind: "Intérieure",
+  },
+  {
     src: "/realisations/daikin-emura-1.jpg",
     title: "Daikin Emura",
     caption: "Unité murale design premium, intégration nette sur lambris.",
