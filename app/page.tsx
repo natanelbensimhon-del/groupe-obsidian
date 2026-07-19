@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HomeHero } from "@/components/sections/HomeHero";
+import { ClimatisationFeature } from "@/components/sections/ClimatisationFeature";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ExpertiseCard } from "@/components/ui/ExpertiseCard";
 import { Reveal } from "@/components/ui/Reveal";
@@ -101,6 +102,9 @@ export default function HomePage() {
   return (
     <>
       <HomeHero />
+
+      {/* Climatisation réversible — mise en avant principale */}
+      <ClimatisationFeature />
 
       {/* Présentation courte */}
       <section className="py-24 md:py-32">

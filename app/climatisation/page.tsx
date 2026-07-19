@@ -4,6 +4,9 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { CTASection } from "@/components/sections/CTASection";
 import { ProcessTimeline, FeatureColumns } from "@/components/sections/Blocks";
 import { Configurateur } from "@/components/climatisation/Configurateur";
+import { Reveal } from "@/components/ui/Reveal";
+import Link from "next/link";
+import { REALISATIONS } from "@/content/realisations";
 
 export const metadata = buildMetadata({
   title: "Climatisation résidentielle",
@@ -100,6 +103,45 @@ export default function ClimatisationPage() {
           />
           <div className="mt-12">
             <FeatureColumns items={INFOS} />
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 md:py-24">
+        <div className="shell">
+          <SectionHeader
+            index="04"
+            eyebrow="Réalisations"
+            title="Des installations soignées, chez nos clients."
+            intro="Un aperçu de nos chantiers récents de climatisation réversible."
+          />
+          <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
+            {REALISATIONS.slice(0, 4).map((r, i) => (
+              <Reveal key={r.src} delayIndex={i % 4}>
+                <Link
+                  href="/realisations"
+                  data-cursor="hover"
+                  className="group relative block aspect-[3/4] overflow-hidden rounded-2xl border border-white/10 bg-obsidian-800"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={r.src}
+                    alt={r.title}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                  <span className="absolute inset-x-0 bottom-0 p-3 text-xs font-medium text-white">
+                    {r.title}
+                  </span>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+          <div className="mt-8">
+            <Link href="/realisations" className="btn-ghost" data-cursor="hover">
+              Voir toutes nos réalisations
+            </Link>
           </div>
         </div>
       </section>

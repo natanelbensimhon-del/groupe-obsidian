@@ -53,20 +53,21 @@ export function HomeHero() {
             variants={item}
             className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-ash-200 md:text-lg"
           >
-            Rénovation énergétique, travaux et optimisation CEE pour les actifs
-            exigeants. Nous structurons, pilotons et valorisons les projets
-            énergétiques à fort enjeu — du diagnostic au chantier.
+            Climatisation réversible & pompe à chaleur air/air, rénovation
+            énergétique et travaux. Du confort de votre pièce au pilotage de
+            projets à fort enjeu — installation clé en main, dans les règles de
+            l&apos;art.
           </motion.p>
 
           <motion.div
             variants={item}
             className="mt-9 flex flex-wrap justify-center gap-4"
           >
-            <Link href="/tertiaire" className="btn-primary" data-cursor="hover">
-              Découvrir nos expertises
+            <Link href="/climatisation" className="btn-primary" data-cursor="hover">
+              Configurer ma climatisation
             </Link>
-            <Link href="/contact" className="btn-ghost" data-cursor="hover">
-              Étudier un projet
+            <Link href="/realisations" className="btn-ghost" data-cursor="hover">
+              Voir nos réalisations
             </Link>
           </motion.div>
         </motion.div>
