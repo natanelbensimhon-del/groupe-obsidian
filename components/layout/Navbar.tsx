@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { NAV, PRIMARY_NAV, SITE } from "@/lib/site";
+import { PRIMARY_NAV, SITE } from "@/lib/site";
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 
@@ -125,7 +125,7 @@ export function Navbar() {
             className="fixed inset-0 z-40 flex flex-col bg-obsidian-900/95 backdrop-blur-2xl lg:hidden"
           >
             <div className="mt-[72px] flex flex-col gap-1 px-6 py-8">
-              {NAV.map((item, i) => (
+              {[...PRIMARY_NAV, { label: "Contact", href: "/contact" }].map((item, i) => (
                 <motion.div
                   key={item.href}
                   initial={{ opacity: 0, x: -16 }}
