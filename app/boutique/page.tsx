@@ -49,23 +49,15 @@ export default async function BoutiquePage({
     <>
       {/* Hero */}
       <section className="border-b border-[#ececec] bg-[#fafafa]">
-        <div className={`${WRAP} py-16 text-center md:py-24`}>
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9aa0a6]">
-            {BOUTIQUE.eyebrow}
-          </span>
-          <h1 className="mx-auto mt-5 max-w-3xl text-balance text-4xl font-semibold leading-[1.08] text-[#22282b] md:text-6xl">
+        <div className={`${WRAP} py-8 text-center md:py-10`}>
+          <h1 className="mx-auto max-w-3xl text-balance text-3xl font-semibold leading-[1.1] text-[#22282b] md:text-5xl">
             {BOUTIQUE.title}
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-[#6b7177] md:text-lg">
+          <p className="mx-auto mt-4 max-w-2xl text-pretty text-sm leading-relaxed text-[#6b7177] md:text-base">
             {BOUTIQUE.intro}
           </p>
-          <div className="mt-9">
-            <Link href="#catalogue" className="gu-btn px-8" data-cursor="hover">
-              Voir les modèles
-            </Link>
-          </div>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[#4a4f54]">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[#4a4f54]">
             {BADGES.map((b) => (
               <span key={b} className="inline-flex items-center gap-2">
                 <svg viewBox="0 0 20 20" className="h-4 w-4 text-[#22282b]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -79,17 +71,9 @@ export default async function BoutiquePage({
       </section>
 
       {/* Catalogue */}
-      <section id="catalogue" className="scroll-mt-20 py-16 md:py-20">
+      <section id="catalogue" className="scroll-mt-20 pb-16 pt-8 md:pb-20 md:pt-10">
         <div className={WRAP}>
-          <h2 className="text-2xl font-semibold text-[#22282b] md:text-3xl">
-            Choisissez votre modèle
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#6b7177]">
-            Chaque cache est fabriqué à la commande, dans la finition que vous
-            choisissez. Prix TTC, livraison comprise en France métropolitaine.
-          </p>
-
-          <div className="mt-10">
+          <div>
             {produits.length > 0 ? (
               <Filtres produits={produits} initial={initial} />
             ) : (
