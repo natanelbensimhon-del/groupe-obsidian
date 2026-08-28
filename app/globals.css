@@ -122,6 +122,39 @@ body {
   }
 }
 
+/* ── Boutique : thème clair scopé (catalogue e-commerce, fond blanc) ── */
+body.boutique-light {
+  background: #ffffff;
+}
+.boutique-light {
+  color: #22282b;
+  font-family: "Helvetica Neue", Helvetica, Arial, var(--font-inter), sans-serif;
+}
+.boutique-light :is(h1, h2, h3, h4) {
+  font-family: "Helvetica Neue", Helvetica, Arial, var(--font-inter), sans-serif;
+  letter-spacing: -0.01em;
+}
+
+@layer components {
+  /* Bouton d'action sombre pleine largeur (façon "Ajouter au panier") */
+  .gu-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded bg-[#22282b] px-6 py-4 text-sm font-medium text-white transition-colors duration-200 hover:bg-black;
+  }
+  .gu-btn:disabled {
+    @apply cursor-not-allowed opacity-40;
+  }
+  /* Pastille de sélection (taille / pose) */
+  .gu-pill {
+    @apply inline-flex items-center justify-center rounded border px-4 py-2.5 text-sm transition-colors;
+  }
+  .gu-pill[data-on="false"] {
+    @apply border-[#dcdcdc] bg-white text-[#22282b] hover:border-[#22282b];
+  }
+  .gu-pill[data-on="true"] {
+    @apply border-[#22282b] bg-[#22282b] text-white;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
