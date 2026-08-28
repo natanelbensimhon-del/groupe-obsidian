@@ -1,10 +1,5 @@
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo";
-import { PageHero } from "@/components/layout/PageHero";
-import { SectionHeader } from "@/components/ui/SectionHeader";
-import { CTASection } from "@/components/sections/CTASection";
-import { FeatureColumns, StatStrip } from "@/components/sections/Blocks";
-import { Reveal } from "@/components/ui/Reveal";
 import { Filtres } from "@/components/boutique/Filtres";
 import { getBoutiqueProducts, shopifyConfigured } from "@/lib/shopify";
 import { BOUTIQUE, ARGUMENTS, FAQ } from "@/content/boutique";
@@ -27,97 +22,149 @@ export const metadata = buildMetadata({
   ],
 });
 
-export default async function BoutiquePage() {
-  const produits = await getBoutiqueProducts();
+const WRAP = "mx-auto w-full max-w-6xl px-5 md:px-8";
 
-  const prixMini = produits.length
-    ? Math.min(...produits.filter((p) => p.tags.includes("exterieur")).map((p) => p.priceFrom))
-    : 349;
+const BADGES = [
+  BOUTIQUE.warranty,
+  "Aluminium thermolaqué",
+  BOUTIQUE.origin,
+  "Livraison offerte",
+  "Installation rapide",
+];
+
+type Id = "tous" | "exterieur" | "interieur" | "piece";
+function toCat(v?: string): Id {
+  return v === "interieur" || v === "piece" || v === "tous" ? v : "exterieur";
+}
+
+export default async function BoutiquePage({
+  searchParams,
+}: {
+  searchParams: { cat?: string };
+}) {
+  const produits = await getBoutiqueProducts();
+  const initial = toCat(searchParams.cat);
 
   return (
     <>
-      <PageHero
-        index="02"
-        eyebrow={BOUTIQUE.eyebrow}
-        title={BOUTIQUE.title}
-        intro={BOUTIQUE.intro}
-      />
+      {/* Hero */}
+      <section className="border-b border-[#ececec] bg-[#fafafa]">
+        <div className={`${WRAP} py-8 text-center md:py-10`}>
+          <h1 className="mx-auto max-w-3xl text-balance text-3xl font-semibold leading-[1.1] text-[#22282b] md:text-5xl">
+            {BOUTIQUE.title}
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-pretty text-sm leading-relaxed text-[#6b7177] md:text-base">
+            {BOUTIQUE.intro}
+          </p>
 
-      <section className="pb-4 pt-2 md:pb-8">
-        <div className="shell">
-          <StatStrip
-            items={[
-              { value: `${produits.length || 46}`, label: "Modèles au catalogue" },
-              { value: "10 ans", label: "De garantie" },
-              { value: `dès ${prixMini} €`, label: "Cache extérieur" },
-              { value: "0 €", label: "Frais de livraison" },
-            ]}
-          />
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[#4a4f54]">
+            {BADGES.map((b) => (
+              <span key={b} className="inline-flex items-center gap-2">
+                <svg viewBox="0 0 20 20" className="h-4 w-4 text-[#22282b]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m5 10 3.5 3.5L15 6" />
+                </svg>
+                {b}
+              </span>
+            ))}
+          </div>
+
+          <div className="mt-6">
+            <Link
+              href="/boutique/guide-compatibilite"
+              className="text-sm text-[#22282b] underline underline-offset-4 hover:opacity-70"
+              data-cursor="hover"
+            >
+              Guide de compatibilité — quelle taille pour mon climatiseur&nbsp;?
+            </Link>
+          </div>
         </div>
       </section>
 
-      <section className="py-16 md:py-24">
-        <div className="shell">
-          <SectionHeader
-            index="01"
-            eyebrow="Le catalogue"
-            title="Choisissez le motif, la taille et la teinte."
-            intro="Chaque cache est fabriqué à la commande, dans la finition que vous choisissez. Les prix affichés sont TTC, livraison comprise en France métropolitaine."
-          />
-
-          <div className="mt-12">
+      {/* Catalogue */}
+      <section id="catalogue" className="scroll-mt-20 pb-16 pt-8 md:pb-20 md:pt-10">
+        <div className={WRAP}>
+          <div>
             {produits.length > 0 ? (
-              <Filtres produits={produits} />
+              <Filtres produits={produits} initial={initial} />
             ) : (
-              <Reveal className="rounded-2xl border border-white/10 bg-white/[0.02] p-8">
-                <p className="text-sm leading-relaxed text-ash-300">
+              <div className="rounded-lg border border-[#e9e9e9] bg-[#fafafa] p-8">
+                <p className="text-sm leading-relaxed text-[#6b7177]">
                   {shopifyConfigured
-                    ? "Le catalogue est momentanément indisponible. Réessayez dans quelques instants ou contactez-nous : nous prenons votre commande directement."
+                    ? "Le catalogue est momentanément indisponible. Réessayez dans quelques instants ou contactez-nous."
                     : "La boutique est en cours de mise en ligne. Contactez-nous pour commander dès maintenant."}
                 </p>
-                <Link href="/contact" className="btn-ghost mt-6" data-cursor="hover">
+                <Link
+                  href="/le-groupe"
+                  className="mt-6 inline-flex rounded border border-[#dcdcdc] px-5 py-2.5 text-sm text-[#22282b] transition-colors hover:border-[#22282b]"
+                >
                   Nous contacter
                 </Link>
-              </Reveal>
+              </div>
             )}
           </div>
         </div>
       </section>
 
-      <section className="py-16 md:py-24">
-        <div className="shell">
-          <SectionHeader
-            index="02"
-            eyebrow="Ce qui compte"
-            title="Un habillage qui ne bride pas l'appareil."
-            intro="Un cache mal conçu étouffe le groupe et fait grimper la consommation. Ceux-ci sont dessinés pour l'inverse."
-          />
-          <div className="mt-12">
-            <FeatureColumns items={ARGUMENTS} />
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 md:py-24">
-        <div className="shell">
-          <SectionHeader index="03" eyebrow="Questions fréquentes" title="Avant de commander." />
-          <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/5 md:grid-cols-2">
-            {FAQ.map((f, i) => (
-              <Reveal key={f.q} delayIndex={i % 2} className="bg-obsidian-800 p-7">
-                <h3 className="text-base font-medium text-ash-100">{f.q}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-ash-300">{f.a}</p>
-              </Reveal>
+      {/* Arguments */}
+      <section className="border-t border-[#ececec] bg-[#fafafa] py-16 md:py-20">
+        <div className={WRAP}>
+          <h2 className="text-2xl font-semibold text-[#22282b] md:text-3xl">
+            Un habillage qui ne bride pas l&apos;appareil
+          </h2>
+          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {ARGUMENTS.map((a) => (
+              <div key={a.title} className="rounded-lg border border-[#e9e9e9] bg-white p-6">
+                <h3 className="text-base font-semibold text-[#22282b]">{a.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-[#6b7177]">{a.text}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <CTASection
-        title="Une question sur votre installation ?"
-        intro="Nous posons et entretenons des climatisations au quotidien : si vous hésitez sur la taille, la pose ou la compatibilité avec votre appareil, écrivez-nous avant de commander."
-        primary={{ label: "Nous écrire", href: "/contact" }}
-        secondary={{ label: "Voir nos climatisations", href: "/climatisation" }}
-      />
+      {/* FAQ */}
+      <section className="py-16 md:py-20">
+        <div className={`${WRAP} max-w-3xl`}>
+          <h2 className="text-2xl font-semibold text-[#22282b] md:text-3xl">
+            Questions fréquentes
+          </h2>
+          <div className="mt-8 divide-y divide-[#ececec] border-y border-[#ececec]">
+            {FAQ.map((f) => (
+              <details key={f.q} className="group py-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium text-[#22282b] md:text-base">
+                  {f.q}
+                  <span className="text-xl text-[#9aa0a6] transition-transform group-open:rotate-45">
+                    +
+                  </span>
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-[#6b7177]">{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA final */}
+      <section className="border-t border-[#ececec] bg-[#22282b] py-16 text-center md:py-20">
+        <div className={WRAP}>
+          <h2 className="mx-auto max-w-2xl text-balance text-2xl font-semibold text-white md:text-4xl">
+            Un doute sur la taille de votre unité ?
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/70">
+            Envoyez-nous les dimensions de votre climatiseur : nous vous confirmons
+            le gabarit adapté avant que vous ne commandiez.
+          </p>
+          <div className="mt-8">
+            <Link
+              href="/le-groupe"
+              className="inline-flex items-center justify-center rounded bg-white px-8 py-4 text-sm font-medium text-[#22282b] transition-colors hover:bg-[#f0f0f0]"
+              data-cursor="hover"
+            >
+              Nous contacter
+            </Link>
+          </div>
+        </div>
+      </section>
     </>
   );
 }

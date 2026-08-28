@@ -29,8 +29,12 @@ export function Navbar() {
     };
   }, [open]);
 
-  // Landing pages publicitaires : header global masqué (chrome dédié).
-  if (pathname === "/climatisation-reversible" || pathname === "/merci-climatisation") {
+  // Landing pages publicitaires + boutique : header global masqué (chrome dédié).
+  if (
+    pathname === "/climatisation-reversible" ||
+    pathname === "/merci-climatisation" ||
+    pathname.startsWith("/boutique")
+  ) {
     return null;
   }
 

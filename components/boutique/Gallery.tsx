@@ -13,7 +13,7 @@ export function Gallery({
   const [active, setActive] = useState(0);
   if (images.length === 0) {
     return (
-      <div className="flex aspect-square items-center justify-center rounded-2xl border border-white/10 bg-obsidian-800 text-sm text-ash-400">
+      <div className="flex aspect-square items-center justify-center rounded-lg border border-[#e9e9e9] bg-[#f4f4f4] text-sm text-[#9aa0a6]">
         Visuel à venir
       </div>
     );
@@ -21,7 +21,7 @@ export function Gallery({
 
   return (
     <div>
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-obsidian-800">
+      <div className="overflow-hidden rounded-lg border border-[#e9e9e9] bg-[#f4f4f4]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={images[active].url}
@@ -31,16 +31,16 @@ export function Gallery({
       </div>
 
       {images.length > 1 && (
-        <div className="mt-3 grid grid-cols-4 gap-3">
-          {images.slice(0, 8).map((img, i) => (
+        <div className="mt-3 grid grid-cols-5 gap-2.5">
+          {images.slice(0, 10).map((img, i) => (
             <button
               key={img.url}
               onClick={() => setActive(i)}
               data-cursor="hover"
               aria-label={`Voir la photo ${i + 1}`}
               className={cn(
-                "overflow-hidden rounded-xl border bg-obsidian-800 transition-colors",
-                i === active ? "border-white/50" : "border-white/10 hover:border-white/30"
+                "overflow-hidden rounded-md border bg-[#f4f4f4] transition-colors",
+                i === active ? "border-[#22282b]" : "border-[#e9e9e9] hover:border-[#bcbcbc]"
               )}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
