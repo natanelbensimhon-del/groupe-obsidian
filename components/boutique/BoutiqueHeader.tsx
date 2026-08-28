@@ -44,6 +44,12 @@ export function BoutiqueHeader() {
               {c.label}
             </Link>
           ))}
+          <Link
+            href="/boutique/guide-compatibilite"
+            className="transition-colors hover:text-[#22282b]"
+          >
+            Compatibilité
+          </Link>
         </nav>
 
         <div className="flex items-center gap-4 text-sm">

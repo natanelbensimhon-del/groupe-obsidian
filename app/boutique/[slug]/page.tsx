@@ -49,6 +49,16 @@ const CAT_LABEL: Record<string, string> = {
   piece: "Pièces détachées",
 };
 
+function GuideIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-[#9aa0a6]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+      <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z" />
+      <path d="M9 12h6M9 16h6" />
+    </svg>
+  );
+}
+
 export default async function ProduitPage({ params }: Params) {
   const p = await getBoutiqueProduct(`cache-climatiseur-${params.slug}`);
   if (!p) notFound();
@@ -123,6 +133,50 @@ export default async function ProduitPage({ params }: Params) {
 
               <div className="mt-8">
                 <Configurateur p={p} categorie={categorie} />
+              </div>
+
+              {/* Guides & compatibilité */}
+              <div className="mt-6 rounded-lg border border-[#e9e9e9] bg-[#fafafa] p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#9aa0a6]">
+                  Guides &amp; compatibilité
+                </p>
+                <ul className="mt-3 space-y-2.5 text-sm">
+                  <li>
+                    <Link
+                      href="/boutique/guide-compatibilite"
+                      className="inline-flex items-center gap-2 text-[#22282b] underline-offset-4 hover:underline"
+                      data-cursor="hover"
+                    >
+                      <GuideIcon /> Guide de compatibilité — trouvez votre taille
+                    </Link>
+                  </li>
+                  {categorie === "exterieur" && (
+                    <>
+                      <li>
+                        <a
+                          href="/guides/installation-cache-clim-mural.pdf"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-[#22282b] underline-offset-4 hover:underline"
+                          data-cursor="hover"
+                        >
+                          <GuideIcon /> Guide d&apos;installation — pose murale (PDF)
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          href="/guides/installation-cache-clim-sol.pdf"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-[#22282b] underline-offset-4 hover:underline"
+                          data-cursor="hover"
+                        >
+                          <GuideIcon /> Guide d&apos;installation — pose au sol (PDF)
+                        </a>
+                      </li>
+                    </>
+                  )}
+                </ul>
               </div>
             </div>
           </div>

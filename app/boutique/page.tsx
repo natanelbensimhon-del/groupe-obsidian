@@ -67,6 +67,16 @@ export default async function BoutiquePage({
               </span>
             ))}
           </div>
+
+          <div className="mt-6">
+            <Link
+              href="/boutique/guide-compatibilite"
+              className="text-sm text-[#22282b] underline underline-offset-4 hover:opacity-70"
+              data-cursor="hover"
+            >
+              Guide de compatibilité — quelle taille pour mon climatiseur&nbsp;?
+            </Link>
+          </div>
         </div>
       </section>
 
