@@ -73,8 +73,8 @@ export function Puzzle2D({
       <svg viewBox={`0 0 ${vw} ${vh}`} className="block h-auto w-full">
         <defs>
           <linearGradient id="j2d-face" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#23282f" />
-            <stop offset="100%" stopColor="#0d0f13" />
+            <stop offset="0%" stopColor="#3a4250" />
+            <stop offset="100%" stopColor="#181c23" />
           </linearGradient>
           <filter id="j2d-glow" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="5" result="b" />
@@ -116,8 +116,8 @@ export function Puzzle2D({
                 <path
                   d={path}
                   fill="url(#j2d-face)"
-                  stroke={isActive ? accent : "rgba(255,255,255,0.14)"}
-                  strokeWidth={isActive ? 2 : 1.2}
+                  stroke={isActive ? accent : "rgba(255,255,255,0.38)"}
+                  strokeWidth={isActive ? 2.4 : 1.7}
                   filter={isActive ? "url(#j2d-glow)" : undefined}
                   style={{ transition: "stroke 0.3s, stroke-width 0.3s" }}
                 />
