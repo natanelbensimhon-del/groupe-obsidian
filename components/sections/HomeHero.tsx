@@ -63,11 +63,11 @@ export function HomeHero() {
             variants={item}
             className="mt-9 flex flex-wrap justify-center gap-4"
           >
-            <Link href="/climatisation" className="btn-primary" data-cursor="hover">
-              Configurer ma climatisation
+            <Link href="/le-groupe" className="btn-primary" data-cursor="hover">
+              Le Groupe
             </Link>
-            <Link href="/realisations" className="btn-ghost" data-cursor="hover">
-              Voir nos réalisations
+            <Link href="/boutique" className="btn-ghost" data-cursor="hover">
+              Boutique
             </Link>
           </motion.div>
         </motion.div>
