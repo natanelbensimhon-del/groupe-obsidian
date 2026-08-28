@@ -9,11 +9,14 @@ import {
   ListCheck,
 } from "@/components/sections/Blocks";
 import { Reveal } from "@/components/ui/Reveal";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { GROUP_SECTIONS } from "@/lib/site";
+import Link from "next/link";
 
 export const metadata = buildMetadata({
   title: "Le Groupe",
   description:
-    "Groupe Obsidian : un groupe énergétique structuré qui analyse, structure, pilote et exécute les projets de rénovation énergétique à fort enjeu.",
+    "Groupe Obsidian : un groupe énergétique structuré qui analyse, structure, pilote et exécute les projets de rénovation énergétique à fort enjeu. Tertiaire, travaux, climatisation, CEE, OBSI'BAT et APIRYON.",
   path: "/le-groupe",
   keywords: ["groupe rénovation énergétique", "pilotage projet énergétique"],
 });
@@ -103,9 +106,63 @@ export default function LeGroupePage() {
         </div>
       </section>
 
+
+      <section className="py-16 md:py-24">
+        <div className="shell">
+          <SectionHeader
+            index="03"
+            eyebrow="Nos pôles"
+            title="Tout ce que nous faisons, en un coup d'œil."
+            intro="Chaque pôle a sa page dédiée : entrez par celui qui correspond à votre projet."
+          />
+          <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {GROUP_SECTIONS.map((s, i) => (
+              <Reveal key={s.href} delayIndex={i % 4}>
+                <Link href={s.href} data-cursor="hover" className="block h-full">
+                  <GlassCard accent={s.accent} className="h-full">
+                    <div className="flex h-full flex-col">
+                      <span className="font-display text-sm text-ash-400">{s.index}</span>
+                      <h3 className="mt-5 text-lg font-medium text-ash-100">{s.label}</h3>
+                      <p className="mt-3 text-sm leading-relaxed text-ash-300">{s.short}</p>
+                      <span className="mt-auto pt-6 text-xs uppercase tracking-label text-ash-400 transition-colors group-hover:text-ash-200">
+                        Découvrir →
+                      </span>
+                    </div>
+                  </GlassCard>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="pb-4">
+        <div className="shell">
+          <Reveal>
+            <Link href="/boutique" data-cursor="hover" className="block">
+              <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-8 transition-colors hover:border-white/25 md:p-12">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                <span className="label">Boutique</span>
+                <h3 className="mt-5 max-w-2xl text-balance text-2xl font-semibold leading-snug text-ash-100 md:text-4xl">
+                  Des caches design pour vos unités de climatisation.
+                </h3>
+                <p className="mt-5 max-w-xl text-sm leading-relaxed text-ash-300 md:text-base">
+                  Aluminium thermolaqué, fabrication française, garantie 10 ans.
+                  Une quarantaine de motifs, cinq tailles, huit teintes RAL.
+                  Livraison offerte.
+                </p>
+                <span className="mt-8 inline-block text-xs uppercase tracking-label text-ash-400 transition-colors group-hover:text-ash-100">
+                  Voir le catalogue →
+                </span>
+              </div>
+            </Link>
+          </Reveal>
+        </div>
+      </section>
+
       <CTASection
         title="Parlons de votre opération."
-        secondary={{ label: "Voir le pôle tertiaire", href: "/tertiaire" }}
+        secondary={{ label: "Voir la boutique", href: "/boutique" }}
       />
     </>
   );

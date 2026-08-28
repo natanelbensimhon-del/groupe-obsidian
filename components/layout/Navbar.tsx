@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { NAV, SITE } from "@/lib/site";
+import { NAV, PRIMARY_NAV, SITE } from "@/lib/site";
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 
@@ -50,8 +50,9 @@ export function Navbar() {
           </Link>
 
           <nav className="hidden items-center gap-1 lg:flex">
-            {NAV.slice(1, -1).map((item) => {
-              const active = pathname === item.href;
+            {PRIMARY_NAV.map((item) => {
+              const active =
+                pathname === item.href || pathname.startsWith(item.href + "/");
               return (
                 <Link
                   key={item.href}

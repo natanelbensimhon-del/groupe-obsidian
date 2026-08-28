@@ -49,6 +49,7 @@ export type NavItem = { label: string; href: string };
 export const NAV: NavItem[] = [
   { label: "Accueil", href: "/" },
   { label: "Le Groupe", href: "/le-groupe" },
+  { label: "Boutique", href: "/boutique" },
   { label: "Tertiaire", href: "/tertiaire" },
   { label: "Travaux", href: "/travaux" },
   { label: "Climatisation", href: "/climatisation" },
@@ -58,6 +59,82 @@ export const NAV: NavItem[] = [
   { label: "Particuliers", href: "/particuliers" },
   { label: "APIRYON", href: "/apiryon" },
   { label: "Contact", href: "/contact" },
+];
+
+// ── Navigation principale (barre de menu desktop) ──────────────────────────
+// Deux portes d'entrée : l'activité du groupe d'un côté, la boutique de
+// l'autre. Le détail des pôles est accessible depuis la page « Le Groupe ».
+export const PRIMARY_NAV: NavItem[] = [
+  { label: "Le Groupe", href: "/le-groupe" },
+  { label: "Boutique", href: "/boutique" },
+];
+
+// ── Sommaire de la page « Le Groupe » ─────────────────────────────────────
+export type GroupSection = {
+  label: string;
+  href: string;
+  index: string;
+  short: string;
+  accent: "platinum" | "steel" | "gold";
+};
+
+export const GROUP_SECTIONS: GroupSection[] = [
+  {
+    label: "Tertiaire",
+    href: "/tertiaire",
+    index: "01",
+    short: "Rénovation énergétique et performance des actifs professionnels.",
+    accent: "platinum",
+  },
+  {
+    label: "Travaux",
+    href: "/travaux",
+    index: "02",
+    short: "Exécution terrain, coordination technique et solutions énergétiques.",
+    accent: "platinum",
+  },
+  {
+    label: "Climatisation",
+    href: "/climatisation",
+    index: "03",
+    short: "Étude, pose et entretien de la climatisation réversible chez les particuliers.",
+    accent: "platinum",
+  },
+  {
+    label: "Optimisation CEE",
+    href: "/optimisation-cee",
+    index: "04",
+    short: "Identification, structuration et valorisation des gisements CEE.",
+    accent: "platinum",
+  },
+  {
+    label: "Particuliers",
+    href: "/particuliers",
+    index: "05",
+    short: "Accompagnement premium pour les propriétaires exigeants.",
+    accent: "platinum",
+  },
+  {
+    label: "Réalisations",
+    href: "/realisations",
+    index: "06",
+    short: "Nos chantiers récents, en images.",
+    accent: "platinum",
+  },
+  {
+    label: "OBSI'BAT",
+    href: "/obsibat",
+    index: "07",
+    short: "Gros œuvre, démolition et interventions techniques encadrées.",
+    accent: "steel",
+  },
+  {
+    label: "APIRYON",
+    href: "/apiryon",
+    index: "08",
+    short: "Aviation d'affaires, déplacements privés et service confidentiel.",
+    accent: "gold",
+  },
 ];
 
 // ── Pièces du puzzle hero (ordre = ordre d'apparition) ─────────────────────
