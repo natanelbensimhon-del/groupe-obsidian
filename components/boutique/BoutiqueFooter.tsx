@@ -46,8 +46,8 @@ export function BoutiqueFooter() {
           <ul className="flex flex-col gap-2.5 text-[#4a4f54]">
             <li><a href={SITE.contact.phoneHref} className="hover:text-[#22282b]">{SITE.contact.phone}</a></li>
             <li><a href={`mailto:${SITE.contact.email}`} className="hover:text-[#22282b]">{SITE.contact.email}</a></li>
+            <li><Link href="/boutique/guide-compatibilite" className="hover:text-[#22282b]">Guide de compatibilité</Link></li>
             <li><Link href="/le-groupe" className="hover:text-[#22282b]">Retour au site</Link></li>
-            <li><Link href="/mentions-legales" className="hover:text-[#22282b]">Mentions légales</Link></li>
           </ul>
         </div>
       </div>
@@ -55,7 +55,12 @@ export function BoutiqueFooter() {
       <div className="border-t border-[#ececec]">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-5 py-5 text-xs text-[#9aa0a6] md:flex-row md:items-center md:justify-between md:px-8">
           <span>© {new Date().getFullYear()} {SITE.name} — {LEGAL.form}</span>
-          <span>Paiement sécurisé · Livraison offerte en France métropolitaine</span>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <Link href="/boutique/cgv" className="hover:text-[#22282b]">CGV</Link>
+            <Link href="/boutique/retours" className="hover:text-[#22282b]">Retours &amp; remboursement</Link>
+            <Link href="/politique-confidentialite" className="hover:text-[#22282b]">Confidentialité</Link>
+            <Link href="/mentions-legales" className="hover:text-[#22282b]">Mentions légales</Link>
+          </div>
         </div>
       </div>
     </footer>

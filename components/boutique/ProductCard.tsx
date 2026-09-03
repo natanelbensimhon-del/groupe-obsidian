@@ -45,11 +45,16 @@ export function ProductCard({ p }: { p: ShopProduct }) {
           ))}
         </div>
 
-        <div className="mt-auto flex items-end justify-between pt-5">
-          <span className="text-xs text-[#9aa0a6]">à partir de</span>
-          <span className="text-lg font-bold text-[#22282b]">
-            {p.priceFrom.toLocaleString("fr-FR")}&nbsp;€
-            <span className="ml-1 text-xs font-normal text-[#9aa0a6]">TTC</span>
+        <div className="mt-auto flex items-end justify-between gap-3 pt-5">
+          <div>
+            <span className="block text-xs text-[#9aa0a6]">à partir de</span>
+            <span className="text-lg font-bold text-[#22282b]">
+              {p.priceFrom.toLocaleString("fr-FR")}&nbsp;€
+              <span className="ml-1 text-xs font-normal text-[#9aa0a6]">TTC</span>
+            </span>
+          </div>
+          <span className="shrink-0 rounded bg-[#22282b] px-3.5 py-2 text-xs font-medium text-white transition-colors group-hover:bg-black">
+            Commander
           </span>
         </div>
       </div>

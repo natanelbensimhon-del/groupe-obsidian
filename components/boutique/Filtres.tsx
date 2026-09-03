@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { CATEGORIES } from "@/content/boutique";
 import { ProductCard } from "./ProductCard";
 import type { ShopProduct } from "@/lib/shopify";
@@ -15,7 +16,21 @@ export function Filtres({
   produits: ShopProduct[];
   initial?: Id;
 }) {
+  const params = useSearchParams();
   const [cat, setCat] = useState<Id>(initial);
+
+  // Réagit au changement de catégorie via l'URL (?cat=…) — liens de l'en-tête.
+  const urlCat = params.get("cat");
+  useEffect(() => {
+    if (
+      urlCat === "exterieur" ||
+      urlCat === "interieur" ||
+      urlCat === "piece" ||
+      urlCat === "tous"
+    ) {
+      setCat(urlCat);
+    }
+  }, [urlCat]);
 
   const visibles =
     cat === "tous" ? produits : produits.filter((p) => p.tags.includes(cat));
