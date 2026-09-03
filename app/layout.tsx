@@ -4,7 +4,6 @@ import "./globals.css";
 import { SITE } from "@/lib/site";
 import { Navbar } from "@/components/layout/Navbar";
 import { ConditionalFooter } from "@/components/layout/ConditionalFooter";
-import { CustomCursor } from "@/components/ui/CustomCursor";
 import { PageTransition } from "@/components/layout/PageTransition";
 
 const inter = Inter({
@@ -66,7 +65,6 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
         />
-        <CustomCursor />
         <Navbar />
         <PageTransition>{children}</PageTransition>
         <ConditionalFooter />
