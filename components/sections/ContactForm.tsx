@@ -12,7 +12,7 @@ const PROJECT_TYPES = [
   "Climatisation résidentielle",
   "Gros œuvre & démolition (OBSI'BAT)",
   "Projet particulier",
-  "Aviation d'affaires (APIRYON)",
+  "APIRYON — club d'affaires",
   "Autre",
 ];
 

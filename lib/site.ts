@@ -132,7 +132,7 @@ export const GROUP_SECTIONS: GroupSection[] = [
     label: "APIRYON",
     href: "/apiryon",
     index: "08",
-    short: "Aviation d'affaires, déplacements privés et service confidentiel.",
+    short: "Club d'affaires : aviation, technologie, rénovation énergétique, investissement et immobilier de luxe.",
     accent: "gold",
   },
 ];
@@ -199,7 +199,7 @@ export const PUZZLE_PIECES: PuzzlePiece[] = [
   {
     id: "apiryon",
     label: "APIRYON",
-    short: "Aviation d'affaires, déplacements privés et service confidentiel.",
+    short: "Club d'affaires : aviation, technologie, rénovation énergétique, investissement et immobilier de luxe.",
     href: "/apiryon",
     index: "07",
     accent: "gold",

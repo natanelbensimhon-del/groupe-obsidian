@@ -58,7 +58,7 @@ const POLES = [
     index: "06",
     title: "APIRYON",
     description:
-      "Aviation d'affaires : déplacements privés et service confidentiel sur mesure.",
+      "Club d'affaires : aviation, technologie, rénovation énergétique, investissement et immobilier de luxe.",
     href: "/apiryon",
     accent: "gold" as const,
   },
@@ -275,11 +275,12 @@ export default function HomePage() {
                 <div>
                   <span className="label text-gold">APIRYON</span>
                   <h3 className="mt-5 text-2xl font-medium text-ash-100 md:text-3xl">
-                    Aviation d&apos;affaires
+                    Club d&apos;affaires
                   </h3>
                   <p className="mt-4 max-w-md text-sm leading-relaxed text-ash-300">
-                    APIRYON accompagne les déplacements privés et professionnels
-                    avec une approche confidentielle, précise et sur mesure.
+                    Aviation d&apos;affaires, technologie, rénovation énergétique,
+                    financement de start-up et immobilier de luxe basse
+                    consommation — réunis sous une même exigence.
                   </p>
                 </div>
                 <span className="mt-8 text-xs uppercase tracking-label text-ash-300">

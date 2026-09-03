@@ -7,29 +7,39 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SITE } from "@/lib/site";
 
 export const metadata = buildMetadata({
-  title: "APIRYON — Aviation d'affaires",
+  title: "APIRYON — Club d'affaires",
   description:
-    "APIRYON, la branche aviation d'affaires du Groupe Obsidian : affrètement privé, déplacements professionnels et voyages confidentiels, avec un service sur mesure et discret.",
+    "APIRYON, le club d'affaires du Groupe Obsidian : aviation d'affaires, technologie, rénovation énergétique, financement de start-ups et immobilier de luxe basse consommation.",
   path: "/apiryon",
-  keywords: ["aviation d'affaires", "APIRYON", "affrètement privé"],
+  keywords: [
+    "club d'affaires",
+    "APIRYON",
+    "aviation d'affaires",
+    "investissement rénovation énergétique",
+    "immobilier de luxe BBC",
+  ],
 });
 
-const SERVICES = [
+const HORIZONS = [
   {
-    title: "Affrètement privé",
-    text: "Organisation de vols privés adaptés à vos itinéraires et à vos exigences.",
+    title: "Aviation d'affaires",
+    text: "Affrètement privé et déplacements confidentiels, avec un service sur mesure, précis et discret.",
   },
   {
-    title: "Déplacements professionnels",
-    text: "Une logistique fluide pour vos rendez-vous, partout, sans contrainte.",
+    title: "Technologie",
+    text: "Investissement et accompagnement de projets et d'entreprises technologiques à fort potentiel.",
   },
   {
-    title: "Voyages confidentiels",
-    text: "Discrétion absolue pour des déplacements qui exigent réserve et précision.",
+    title: "Rénovation énergétique",
+    text: "Au cœur de l'écosystème Obsidian : une vision orientée performance et valeur du bâtiment.",
   },
   {
-    title: "Service sur mesure",
-    text: "Chaque demande est traitée individuellement, dans le détail et l'anticipation.",
+    title: "Financement de start-up",
+    text: "Nous finançons de jeunes entreprises de la rénovation énergétique, pour accélérer les solutions de demain.",
+  },
+  {
+    title: "Immobilier de luxe",
+    text: "Acquisition et rénovation de biens d'exception, aux meilleures normes basse consommation (BBC).",
   },
 ];
 
@@ -40,19 +50,20 @@ export default function ApiryonPage() {
         tone="gold"
         index="07"
         eyebrow="APIRYON — Branche du groupe"
-        title="L'aviation d'affaires, dans la plus grande discrétion."
-        intro="APIRYON accompagne les déplacements privés et professionnels avec une approche confidentielle, précise et sur mesure. Une branche premium du Groupe Obsidian, dédiée à l'exigence du voyage."
+        title="Un club d'affaires aux horizons multiples."
+        intro="APIRYON réunit, sous une même exigence, plusieurs univers : aviation d'affaires, technologie, rénovation énergétique, financement de jeunes entreprises et immobilier de luxe. Une branche premium du Groupe Obsidian, à la croisée du service, de l'investissement et de la performance."
       />
 
       <section className="py-20 md:py-28">
         <div className="shell">
           <SectionHeader
             index="01"
-            eyebrow="Nos services"
-            title="Un accompagnement discret, du premier appel à l'arrivée."
+            eyebrow="Nos horizons"
+            title="Plusieurs mondes, une même exigence."
+            intro="Un club d'affaires qui investit, accompagne et opère à la rencontre de secteurs complémentaires."
           />
           <div className="mt-14">
-            <FeatureColumns items={SERVICES} accent="gold" columns={2} />
+            <FeatureColumns items={HORIZONS} accent="gold" />
           </div>
         </div>
       </section>
@@ -60,8 +71,8 @@ export default function ApiryonPage() {
       <section className="py-16 md:py-24">
         <div className="shell">
           <Manifesto>
-            La discrétion n&apos;est pas une option : c&apos;est le fondement de
-            notre service.
+            Réunir des univers d&apos;exception autour d&apos;une même exigence :
+            discrétion, précision et performance.
           </Manifesto>
         </div>
       </section>
@@ -79,7 +90,7 @@ export default function ApiryonPage() {
           <Reveal>
             <span className="label text-gold">Contact direct</span>
             <h2 className="mx-auto mt-6 max-w-2xl text-balance text-4xl font-semibold text-ash-100 md:text-5xl">
-              Organisons votre prochain déplacement.
+              Échangeons sur votre projet.
             </h2>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
               <a
