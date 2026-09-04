@@ -106,6 +106,48 @@ export default function HomePage() {
       {/* Climatisation réversible — mise en avant principale */}
       <ClimatisationFeature />
 
+      {/* Ingénierie & génie climatique */}
+      <section className="py-16 md:py-24">
+        <div className="shell">
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-obsidian-800/50 p-8 md:p-12">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+            <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+              <div>
+                <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-[11px] font-medium uppercase tracking-label text-gold">
+                  Bureau d&apos;ingénierie
+                </span>
+                <h2 className="mt-5 text-balance font-display text-3xl font-semibold text-ash-100 md:text-4xl">
+                  Génie climatique : au-delà de la pose.
+                </h2>
+                <p className="mt-5 max-w-lg text-pretty leading-relaxed text-ash-300">
+                  Dimensionnement, études thermiques et suivi des dernières
+                  technologies du génie climatique. Nous concevons la performance
+                  avant de la poser.
+                </p>
+                <Link href="/genie-climatique" className="btn-ghost mt-8" data-cursor="hover">
+                  Découvrir le pôle ingénierie
+                </Link>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
+                <span className="label">Veille technologique</span>
+                <ul className="mt-4 divide-y divide-white/5">
+                  {[
+                    "PAC au propane (R290) & fluides bas-GWP",
+                    "Régulation prédictive & pilotage intelligent",
+                    "Récupération de chaleur & rendements",
+                  ].map((t) => (
+                    <li key={t} className="flex items-center gap-3 py-3 text-sm text-ash-200">
+                      <span className="h-1.5 w-1.5 shrink-0 rotate-45 bg-glow" />
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Présentation courte */}
       <section className="py-24 md:py-32">
         <div className="shell">

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { PuzzleHero } from "@/components/puzzle/PuzzleHero";
+import { ProfileSelector } from "@/components/sections/ProfileSelector";
 
 const container = {
   hidden: {},
@@ -71,6 +72,10 @@ export function HomeHero() {
             </Link>
           </motion.div>
         </motion.div>
+
+        <div className="relative z-10 mx-auto mt-10 max-w-4xl">
+          <ProfileSelector />
+        </div>
       </div>
 
       {/* Puzzle — pièce maîtresse, pleine largeur */}

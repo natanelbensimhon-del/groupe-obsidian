@@ -53,10 +53,12 @@ export const NAV: NavItem[] = [
   { label: "Tertiaire", href: "/tertiaire" },
   { label: "Travaux", href: "/travaux" },
   { label: "Climatisation", href: "/climatisation" },
+  { label: "Génie climatique", href: "/genie-climatique" },
   { label: "Réalisations", href: "/realisations" },
   { label: "OBSI'BAT", href: "/obsibat" },
   { label: "Optimisation CEE", href: "/optimisation-cee" },
   { label: "Particuliers", href: "/particuliers" },
+  { label: "Copropriétés", href: "/coproprietes" },
   { label: "APIRYON", href: "/apiryon" },
   { label: "Contact", href: "/contact" },
 ];
