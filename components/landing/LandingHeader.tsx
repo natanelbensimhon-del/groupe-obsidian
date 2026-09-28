@@ -4,7 +4,15 @@ import { Logo } from "@/components/ui/Logo";
 import { SITE } from "@/lib/site";
 import { track } from "@/lib/tracking";
 
-export function LandingHeader() {
+export function LandingHeader({
+  phone = SITE.contact.phone,
+  phoneHref = SITE.contact.phoneHref,
+  cta = "Demander ma prévisite",
+}: {
+  phone?: string;
+  phoneHref?: string;
+  cta?: string;
+} = {}) {
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-obsidian-900/80 backdrop-blur-xl">
       <div className="shell flex h-[64px] items-center justify-between">
@@ -13,13 +21,13 @@ export function LandingHeader() {
         </a>
         <div className="flex items-center gap-3">
           <a
-            href={SITE.contact.phoneHref}
+            href={phoneHref}
             onClick={() => track("click_phone", { location: "header" })}
             data-cursor="hover"
             className="hidden items-center gap-2 text-sm font-medium text-ash-100 hover:text-white sm:flex"
           >
             <PhoneIcon />
-            {SITE.contact.phone}
+            {phone}
           </a>
           <a
             href="#devis"
@@ -27,7 +35,7 @@ export function LandingHeader() {
             data-cursor="hover"
             className="rounded-full bg-ash-100 px-4 py-2 text-[13px] font-medium text-obsidian-900 transition-colors hover:bg-white"
           >
-            Demander ma prévisite
+            {cta}
           </a>
         </div>
       </div>

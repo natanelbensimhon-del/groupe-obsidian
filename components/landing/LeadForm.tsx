@@ -12,7 +12,23 @@ const LOGEMENTS = ["Maison individuelle", "Appartement", "Autre"];
 const PIECES = ["1 pièce", "2 pièces", "3 pièces", "4 pièces ou plus"];
 const DELAIS = ["Dès que possible", "Sous 1 à 3 mois", "Plus tard / je me renseigne"];
 
-export function LeadForm({ id = "devis" }: { id?: string }) {
+type SecondaryField = { name: string; placeholder: string; options: string[] };
+
+export function LeadForm({
+  id = "devis",
+  redirectTo = "/merci-climatisation",
+  offer = "climatisation_reversible_de_dietrich",
+  formName = "lead_climatisation",
+  value = 7500,
+  secondaryField = { name: "pieces", placeholder: "Pièces à climatiser", options: PIECES },
+}: {
+  id?: string;
+  redirectTo?: string;
+  offer?: string;
+  formName?: string;
+  value?: number;
+  secondaryField?: SecondaryField;
+}) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
@@ -21,7 +37,7 @@ export function LeadForm({ id = "devis" }: { id?: string }) {
   function onFirstInteraction() {
     if (!started.current) {
       started.current = true;
-      track("form_start", { form: "lead_climatisation" });
+      track("form_start", { form: formName });
     }
   }
 
@@ -48,6 +64,7 @@ export function LeadForm({ id = "devis" }: { id?: string }) {
     setStatus("loading");
     const payload = {
       ...data,
+      offre: offer,
       ...getAttribution(),
       page: typeof window !== "undefined" ? window.location.pathname : "",
     };
@@ -63,13 +80,9 @@ export function LeadForm({ id = "devis" }: { id?: string }) {
         setError("Une erreur est survenue. Réessayez ou appelez-nous.");
         return;
       }
-      track("form_submit", { form: "lead_climatisation" });
-      track("generate_lead", {
-        value: 7500,
-        currency: "EUR",
-        offer: "climatisation_reversible_de_dietrich",
-      });
-      router.push("/merci-climatisation");
+      track("form_submit", { form: formName });
+      track("generate_lead", { value, currency: "EUR", offer });
+      router.push(redirectTo);
     } catch {
       setStatus("error");
       setError("Connexion impossible. Réessayez ou appelez-nous.");
@@ -106,9 +119,9 @@ export function LeadForm({ id = "devis" }: { id?: string }) {
           <option value="" disabled>Type de logement</option>
           {LOGEMENTS.map((o) => <option key={o} value={o} className="bg-obsidian-800">{o}</option>)}
         </select>
-        <select className={inputClass} name="pieces" defaultValue="">
-          <option value="" disabled>Pièces à climatiser</option>
-          {PIECES.map((o) => <option key={o} value={o} className="bg-obsidian-800">{o}</option>)}
+        <select className={inputClass} name={secondaryField.name} defaultValue="">
+          <option value="" disabled>{secondaryField.placeholder}</option>
+          {secondaryField.options.map((o) => <option key={o} value={o} className="bg-obsidian-800">{o}</option>)}
         </select>
         <select className={cn(inputClass, "sm:col-span-2")} name="delai" defaultValue="">
           <option value="" disabled>Délai souhaité</option>

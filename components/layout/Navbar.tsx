@@ -33,6 +33,8 @@ export function Navbar() {
   if (
     pathname === "/climatisation-reversible" ||
     pathname === "/merci-climatisation" ||
+    pathname === "/pompe-a-chaleur" ||
+    pathname === "/merci-pompe-a-chaleur" ||
     pathname.startsWith("/boutique")
   ) {
     return null;
