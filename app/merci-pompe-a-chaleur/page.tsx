@@ -34,9 +34,6 @@ export default function MerciPompeAChaleur() {
             </svg>
             <span className="text-[15px] font-semibold uppercase tracking-[0.22em] text-[#22282b]">Obsidian</span>
           </a>
-          <a href={SITE.contact.mobileHref} className="text-sm font-semibold text-[#22282b]">
-            {SITE.contact.mobile}
-          </a>
         </div>
       </header>
 
@@ -65,13 +62,6 @@ export default function MerciPompeAChaleur() {
               <p className="mt-2 text-sm leading-relaxed text-[#6b7177]">{s.d}</p>
             </div>
           ))}
-        </div>
-
-        <div className="mt-12 rounded-2xl border border-[#e9e9e9] bg-[#fafafa] px-6 py-5">
-          <p className="text-sm text-[#6b7177]">Une question en attendant ?</p>
-          <a href={SITE.contact.mobileHref} className="mt-1 block text-2xl font-bold text-[#22282b] hover:text-[#9a7b2b]">
-            {SITE.contact.mobile}
-          </a>
         </div>
 
         <div className="mt-10 flex flex-wrap justify-center gap-3">

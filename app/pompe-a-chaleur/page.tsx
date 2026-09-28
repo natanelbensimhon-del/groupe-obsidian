@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { SITE, LEGAL } from "@/lib/site";
-import { MobileBar } from "@/components/landing/MobileBar";
 import { Tracking } from "@/components/landing/Tracking";
 import { LeadForm } from "@/components/landing/LeadForm";
 import { BoutiqueTheme } from "@/components/boutique/BoutiqueTheme";
@@ -46,7 +45,6 @@ const jsonLd = {
       "@id": `${LP_URL}#business`,
       name: SITE.name,
       url: LP_URL,
-      telephone: "+33605531004",
       email: SITE.contact.email,
       areaServed: "Île-de-France",
       address: { "@type": "PostalAddress", streetAddress: "313 avenue Georges-Clemenceau", postalCode: "78670", addressLocality: "Villennes-sur-Seine", addressCountry: "FR" },
@@ -97,14 +95,9 @@ export default function LandingPompeAChaleur() {
       <header className="sticky top-0 z-40 border-b border-[#ececec] bg-white/95 backdrop-blur-sm">
         <div className={`${WRAP} flex h-16 items-center justify-between`}>
           <LogoMark />
-          <div className="flex items-center gap-3 sm:gap-4">
-            <a href={SITE.contact.mobileHref} className="hidden text-sm font-semibold text-[#22282b] sm:inline">
-              {SITE.contact.mobile}
-            </a>
-            <a href="#devis" className="rounded-full bg-[#22282b] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-black">
-              Je demande un devis
-            </a>
-          </div>
+          <a href="#devis" className="rounded-full bg-[#22282b] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-black">
+            Je demande un devis
+          </a>
         </div>
       </header>
 
@@ -148,11 +141,6 @@ export default function LandingPompeAChaleur() {
               ))}
             </div>
 
-            <div className="mt-8 hidden items-center gap-3 lg:flex">
-              <a href={SITE.contact.mobileHref} className="text-lg font-semibold text-[#22282b]">
-                Une question ? {SITE.contact.mobile}
-              </a>
-            </div>
           </div>
 
           {/* Carte formulaire — mise en avant */}
@@ -275,12 +263,9 @@ export default function LandingPompeAChaleur() {
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/70">
             Remplissez le formulaire et recevez votre devis, avec le détail de vos aides.
           </p>
-          <div className="mt-9 flex flex-wrap justify-center gap-4">
+          <div className="mt-9 flex justify-center">
             <a href="#devis" className="rounded-full bg-white px-8 py-4 text-base font-medium text-[#22282b] transition-colors hover:bg-[#f0f0f0]" data-cursor="hover">
               Je demande un devis
-            </a>
-            <a href={SITE.contact.mobileHref} className="rounded-full border border-white/30 px-8 py-4 text-base font-medium text-white transition-colors hover:bg-white/10" data-cursor="hover">
-              Appeler le {SITE.contact.mobile}
             </a>
           </div>
         </div>
@@ -306,7 +291,6 @@ export default function LandingPompeAChaleur() {
           </div>
           <div className="text-sm text-[#4a4f54]">
             <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#9aa0a6]">Contact</p>
-            <a href={SITE.contact.mobileHref} className="block hover:text-[#22282b]">{SITE.contact.mobile}</a>
             <a href={`mailto:${SITE.contact.email}`} className="block hover:text-[#22282b]">{SITE.contact.email}</a>
           </div>
           <div className="text-sm text-[#4a4f54]">
@@ -323,7 +307,12 @@ export default function LandingPompeAChaleur() {
         </div>
       </footer>
 
-      <MobileBar phoneHref={SITE.contact.mobileHref} />
+      {/* Barre mobile — devis uniquement, sans numéro */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#ececec] bg-white/95 p-3 backdrop-blur md:hidden">
+        <a href="#devis" className="flex items-center justify-center rounded-xl bg-[#22282b] py-3.5 text-sm font-medium text-white">
+          Je demande un devis
+        </a>
+      </div>
     </div>
   );
 }
