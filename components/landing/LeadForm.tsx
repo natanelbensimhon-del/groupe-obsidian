@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { getAttribution, track } from "@/lib/tracking";
 import { cn } from "@/lib/utils";
 
-const inputClass =
+const DARK_INPUT =
   "w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-ash-100 placeholder:text-ash-400 outline-none transition-colors focus:border-glow/50 focus:bg-white/[0.06]";
+const LIGHT_INPUT =
+  "w-full rounded-xl border border-[#d8dade] bg-white px-4 py-3.5 text-base text-[#22282b] placeholder:text-[#9aa0a6] outline-none transition-colors focus:border-[#22282b]";
 
 const LOGEMENTS = ["Maison individuelle", "Appartement", "Autre"];
 const PIECES = ["1 pièce", "2 pièces", "3 pièces", "4 pièces ou plus"];
@@ -21,6 +23,8 @@ export function LeadForm({
   formName = "lead_climatisation",
   value = 7500,
   secondaryField = { name: "pieces", placeholder: "Pièces à climatiser", options: PIECES },
+  light = false,
+  submitLabel = "Recevoir ma proposition personnalisée",
 }: {
   id?: string;
   redirectTo?: string;
@@ -28,11 +32,16 @@ export function LeadForm({
   formName?: string;
   value?: number;
   secondaryField?: SecondaryField;
+  light?: boolean;
+  submitLabel?: string;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
   const started = useRef(false);
+
+  const inputClass = light ? LIGHT_INPUT : DARK_INPUT;
+  const optionClass = light ? "bg-white text-[#22282b]" : "bg-obsidian-800";
 
   function onFirstInteraction() {
     if (!started.current) {
@@ -117,42 +126,62 @@ export function LeadForm({
         </div>
         <select className={inputClass} name="logement" defaultValue="">
           <option value="" disabled>Type de logement</option>
-          {LOGEMENTS.map((o) => <option key={o} value={o} className="bg-obsidian-800">{o}</option>)}
+          {LOGEMENTS.map((o) => <option key={o} value={o} className={optionClass}>{o}</option>)}
         </select>
         <select className={inputClass} name={secondaryField.name} defaultValue="">
           <option value="" disabled>{secondaryField.placeholder}</option>
-          {secondaryField.options.map((o) => <option key={o} value={o} className="bg-obsidian-800">{o}</option>)}
+          {secondaryField.options.map((o) => <option key={o} value={o} className={optionClass}>{o}</option>)}
         </select>
         <select className={cn(inputClass, "sm:col-span-2")} name="delai" defaultValue="">
           <option value="" disabled>Délai souhaité</option>
-          {DELAIS.map((o) => <option key={o} value={o} className="bg-obsidian-800">{o}</option>)}
+          {DELAIS.map((o) => <option key={o} value={o} className={optionClass}>{o}</option>)}
         </select>
         <textarea className={cn(inputClass, "sm:col-span-2 resize-none")} name="message" rows={2} placeholder="Message (facultatif)" />
       </div>
 
-      <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-[12px] leading-relaxed text-ash-300">
-        <input type="checkbox" name="consent" value="1" className="mt-0.5 h-4 w-4 shrink-0 accent-glow" />
+      <label
+        className={cn(
+          "mt-4 flex cursor-pointer items-start gap-2.5 text-[12px] leading-relaxed",
+          light ? "text-[#5b6167]" : "text-ash-300"
+        )}
+      >
+        <input
+          type="checkbox"
+          name="consent"
+          value="1"
+          className={cn("mt-0.5 h-4 w-4 shrink-0", light ? "accent-[#22282b]" : "accent-glow")}
+        />
         <span>
           J&apos;accepte que Groupe Obsidian utilise mes informations pour me
           recontacter au sujet de mon projet.{" "}
-          <a href="/politique-confidentialite" className="underline hover:text-ash-100">
+          <a
+            href="/politique-confidentialite"
+            className={cn("underline", light ? "hover:text-[#22282b]" : "hover:text-ash-100")}
+          >
             Politique de confidentialité
           </a>
           .
         </span>
       </label>
 
-      {error && <p className="mt-3 text-sm text-amber-300">{error}</p>}
+      {error && (
+        <p className={cn("mt-3 text-sm", light ? "text-red-600" : "text-amber-300")}>{error}</p>
+      )}
 
       <button
         type="submit"
         disabled={status === "loading"}
-        className="btn-primary mt-5 w-full text-[15px] disabled:opacity-60"
         data-cursor="hover"
+        className={cn(
+          "mt-5 w-full disabled:opacity-60",
+          light
+            ? "rounded-xl bg-[#22282b] px-6 py-4 text-base font-medium text-white transition-colors hover:bg-black"
+            : "btn-primary text-[15px]"
+        )}
       >
-        {status === "loading" ? "Envoi en cours…" : "Recevoir ma proposition personnalisée"}
+        {status === "loading" ? "Envoi en cours…" : submitLabel}
       </button>
-      <p className="mt-3 text-center text-[11px] text-ash-500">
+      <p className={cn("mt-3 text-center text-[11px]", light ? "text-[#9aa0a6]" : "text-ash-500")}>
         Réponse rapide · Étude personnalisée · Sans engagement avant acceptation du devis
       </p>
     </form>
