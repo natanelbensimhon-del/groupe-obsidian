@@ -33,7 +33,9 @@ export function buildMetadata({
     path === "/" ? `${SITE.name} — ${SITE.baseline}` : `${title} — ${SITE.name}`;
 
   return {
-    title: fullTitle,
+    // `absolute` : le titre contient déjà « — Groupe Obsidian », on évite que
+    // le template du layout le rajoute une seconde fois.
+    title: { absolute: fullTitle },
     description,
     keywords: [...DEFAULT_KEYWORDS, ...keywords],
     alternates: { canonical: url },

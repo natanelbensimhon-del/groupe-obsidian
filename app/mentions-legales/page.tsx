@@ -56,10 +56,7 @@ export default function MentionsLegalesPage() {
                 {SITE.contact.email}
               </a>
             </p>
-            <p className="text-ash-400">
-              Directeur de la publication : ⚠ à confirmer (représentant légal de
-              la société).
-            </p>
+            <p>Directeur de la publication : Natanel Bensimhon, Président.</p>
           </Block>
 
           <Block title="Hébergement">
@@ -70,13 +67,9 @@ export default function MentionsLegalesPage() {
           </Block>
 
           <Block title="Activité & qualifications">
-            <p>
-              {LEGAL.activity}. {LEGAL.fluidesAttestation}.
-            </p>
-            <p className="text-ash-400">
-              ⚠ À compléter : assurance de responsabilité civile professionnelle
-              et décennale (assureur, n° de police, couverture géographique).
-            </p>
+            <p>{LEGAL.activity}.</p>
+            <p>{LEGAL.capaciteAttestation}.</p>
+            <p>{LEGAL.fluidesAttestation}.</p>
           </Block>
 
           <Block title="Propriété intellectuelle">

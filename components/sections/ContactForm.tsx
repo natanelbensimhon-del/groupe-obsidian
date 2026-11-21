@@ -6,10 +6,12 @@ import { motion, AnimatePresence } from "framer-motion";
 type Status = "idle" | "loading" | "success" | "error";
 
 const PROJECT_TYPES = [
+  "Pompe à chaleur air/eau",
+  "Climatisation résidentielle",
+  "Isolation / rénovation de maison",
   "Rénovation énergétique tertiaire",
   "Optimisation CEE",
   "Travaux / rénovation",
-  "Climatisation résidentielle",
   "Gros œuvre & démolition (OBSI'BAT)",
   "Projet particulier",
   "APIRYON — club d'affaires",
@@ -126,8 +128,15 @@ export function ContactForm() {
               <Field label="Nom" required>
                 <input name="nom" required className={inputClass} placeholder="Votre nom" />
               </Field>
-              <Field label="Société">
-                <input name="societe" className={inputClass} placeholder="Votre société" />
+              <Field label="Code postal">
+                <input
+                  name="codePostal"
+                  inputMode="numeric"
+                  autoComplete="postal-code"
+                  maxLength={5}
+                  className={inputClass}
+                  placeholder="78670"
+                />
               </Field>
             </div>
 
@@ -164,11 +173,11 @@ export function ContactForm() {
                   ))}
                 </select>
               </Field>
-              <Field label="Surface / bâtiment concerné">
+              <Field label="Logement / surface">
                 <input
                   name="surface"
                   className={inputClass}
-                  placeholder="Ex : bureaux 1 200 m²"
+                  placeholder="Ex : maison 120 m², chaudière fioul"
                 />
               </Field>
             </div>
@@ -180,7 +189,7 @@ export function ContactForm() {
                 required
                 rows={5}
                 className={`${inputClass} resize-none`}
-                placeholder="Décrivez votre projet, vos enjeux et votre calendrier…"
+                placeholder="Décrivez votre projet : chauffage actuel, besoin, délai souhaité…"
               />
             </Field>
 
@@ -200,7 +209,7 @@ export function ContactForm() {
                 className="btn-primary disabled:opacity-60"
                 data-cursor="hover"
               >
-                {status === "loading" ? "Envoi…" : "Soumettre un projet"}
+                {status === "loading" ? "Envoi…" : "Demander un devis"}
               </button>
             </div>
           </motion.form>

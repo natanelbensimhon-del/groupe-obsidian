@@ -20,39 +20,39 @@ import { PARTNERS } from "@/lib/site";
 const POLES = [
   {
     index: "01",
+    title: "Particuliers",
+    description:
+      "Pompe à chaleur air/eau, climatisation et isolation pour les propriétaires de maisons individuelles.",
+    href: "/particuliers",
+  },
+  {
+    index: "02",
     title: "Tertiaire",
     description:
       "Rénovation énergétique et performance des bureaux, commerces et bâtiments collectifs.",
     href: "/tertiaire",
   },
   {
-    index: "02",
+    index: "03",
     title: "Travaux",
     description:
       "Isolation, chauffage, pompe à chaleur et ventilation, exécutés dans une logique de performance.",
     href: "/travaux",
   },
   {
-    index: "03",
+    index: "04",
     title: "Optimisation CEE",
     description:
       "Identification, structuration et sécurisation documentaire des gisements valorisables.",
     href: "/optimisation-cee",
   },
   {
-    index: "04",
+    index: "05",
     title: "OBSI'BAT",
     description:
       "Gros œuvre, démolition et préparation structurelle des bâtiments.",
     href: "/obsibat",
     accent: "steel" as const,
-  },
-  {
-    index: "05",
-    title: "Particuliers",
-    description:
-      "Accompagnement premium et lisible des propriétaires de maisons individuelles.",
-    href: "/particuliers",
   },
   {
     index: "06",

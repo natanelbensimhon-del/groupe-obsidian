@@ -7,6 +7,7 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const routes = [
     ...NAV.map((n) => n.href),
+    "/pompe-a-chaleur",
     "/mentions-legales",
     "/politique-confidentialite",
   ];

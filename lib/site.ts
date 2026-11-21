@@ -9,9 +9,9 @@ export const SITE = {
   // ⚠️ Mettez ici l'URL de production définitive (utilisée pour le SEO / sitemap).
   url: "https://www.groupe-obsidian.com",
   baseline:
-    "Rénovation énergétique, travaux et optimisation CEE pour les actifs exigeants.",
+    "Pompe à chaleur, climatisation et isolation en Île-de-France",
   description:
-    "Groupe Obsidian structure, pilote et valorise les projets énergétiques à fort enjeu : rénovation tertiaire, optimisation CEE, travaux et gros œuvre encadré.",
+    "Groupe Obsidian installe pompes à chaleur air/eau, climatisations réversibles et isolations pour les maisons individuelles, copropriétés et bâtiments tertiaires en Île-de-France, depuis Villennes-sur-Seine (78).",
   // ⚠️ COORDONNÉES — vérifiez / remplacez par vos informations définitives.
   contact: {
     phone: "01 80 97 57 21",
@@ -38,8 +38,10 @@ export const LEGAL = {
   ape: "APE 43.29A",
   projectContact: "Natanel Bensimhon, chef de projet",
   projectPhone: "06 29 85 28 08",
-  // Attestation d'aptitude à la manipulation des fluides frigorigènes.
-  fluidesAttestation: "Attestation d'aptitude Catégorie I n° 541 2429 (délivrée le 09/03/2026 par CEE Formation)",
+  // Attestation de capacité de l'entreprise (manipulation des fluides frigorigènes).
+  capaciteAttestation: "Attestation de capacité à manipuler les fluides frigorigènes n° 65213 (Cemafroid)",
+  // Attestation d'aptitude personnelle du technicien (à distinguer de celle de l'entreprise).
+  fluidesAttestation: "Attestation d'aptitude Catégorie I n° 541 2429 du technicien (délivrée le 09/03/2026 par CEE Formation)",
   devisValidity: "3 mois",
   tvaRate: 0.1, // TVA 10 % — travaux d'amélioration d'un logement achevé depuis +2 ans
 } as const;

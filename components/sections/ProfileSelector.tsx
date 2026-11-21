@@ -8,8 +8,8 @@ type Profil = {
 };
 
 const PROFILS: Profil[] = [
-  { key: "copro", label: "Copropriété", sub: "Syndic, conseil syndical", href: "/coproprietes" },
   { key: "maison", label: "Maison individuelle", sub: "Propriétaire occupant", href: "/particuliers" },
+  { key: "copro", label: "Copropriété", sub: "Syndic, conseil syndical", href: "/coproprietes" },
   { key: "pro", label: "Professionnel", sub: "Installateur, promoteur", href: "/travaux" },
   { key: "tertiaire", label: "Tertiaire", sub: "Bureaux, commerces, collectivités", href: "/tertiaire" },
 ];

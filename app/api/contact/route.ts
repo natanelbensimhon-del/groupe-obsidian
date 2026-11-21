@@ -38,11 +38,12 @@ export async function POST(request: Request) {
     const text =
       `Nouvelle demande via le formulaire de contact.\n\n` +
       l("Nom", data.nom) +
+      l("Code postal", data.codePostal) +
       l("Société", data.societe) +
       l("Téléphone", data.telephone) +
       l("E-mail", data.email) +
       l("Type de projet", data.type) +
-      l("Surface / bâtiment", data.surface) +
+      l("Logement / surface", data.surface) +
       `\nMessage :\n${data.message}\n`;
 
     await resend.emails.send({

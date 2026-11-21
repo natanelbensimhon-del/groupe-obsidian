@@ -36,7 +36,7 @@ export function HomeHero() {
             className="mb-6 flex items-center justify-center gap-3"
           >
             <span className="h-px w-10 bg-white/15" />
-            <span className="label">Groupe énergétique — France</span>
+            <span className="label">Chauffage & climatisation — Île-de-France</span>
             <span className="h-px w-10 bg-white/15" />
           </motion.div>
 
@@ -54,21 +54,20 @@ export function HomeHero() {
             variants={item}
             className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-ash-200 md:text-lg"
           >
-            Climatisation réversible & pompe à chaleur air/air, rénovation
-            énergétique et travaux. Du confort de votre pièce au pilotage de
-            projets à fort enjeu — installation clé en main, dans les règles de
-            l&apos;art.
+            Pompe à chaleur air/eau, climatisation réversible et isolation pour
+            votre maison. Étude, installation et suivi par nos équipes, depuis
+            Villennes-sur-Seine (78), dans toute l&apos;Île-de-France.
           </motion.p>
 
           <motion.div
             variants={item}
             className="mt-9 flex flex-wrap justify-center gap-4"
           >
-            <Link href="/le-groupe" className="btn-primary" data-cursor="hover">
-              Le Groupe
+            <Link href="/contact" className="btn-primary" data-cursor="hover">
+              Demander un devis
             </Link>
-            <Link href="/boutique" className="btn-ghost" data-cursor="hover">
-              Boutique
+            <Link href="/pompe-a-chaleur" className="btn-ghost" data-cursor="hover">
+              Pompe à chaleur air/eau
             </Link>
           </motion.div>
         </motion.div>

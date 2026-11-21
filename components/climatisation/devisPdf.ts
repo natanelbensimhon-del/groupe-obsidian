@@ -330,7 +330,8 @@ export async function generateDevisPdf(d: DevisData) {
   qy += 4.5;
   const quals = [
     `Suivi de chantier : ${LEGAL.projectContact} (${LEGAL.projectPhone})`,
-    `Fluides frigorigènes : ${LEGAL.fluidesAttestation}`,
+    `Fluides frigorigènes : ${LEGAL.capaciteAttestation}`,
+    `Technicien : ${LEGAL.fluidesAttestation}`,
   ];
   quals.forEach((q) => {
     const lines = doc.splitTextToSize(q, W / 2 - 6);

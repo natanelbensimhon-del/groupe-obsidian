@@ -27,8 +27,8 @@ export default function ContactPage() {
       <PageHero
         index="08"
         eyebrow="Contact"
-        title="Soumettez votre projet."
-        intro="Présentez-nous votre bâtiment, votre actif ou votre besoin. Nous revenons vers vous avec une lecture structurée et des pistes d'accompagnement."
+        title="Parlons de votre projet."
+        intro="Pompe à chaleur, climatisation, isolation : décrivez-nous votre maison et votre besoin. Nous vous recontactons pour organiser l'étude et vous remettre un devis."
       />
 
       <section className="pb-28 md:pb-36">
