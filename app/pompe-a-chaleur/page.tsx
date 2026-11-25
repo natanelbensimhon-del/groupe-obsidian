@@ -142,11 +142,11 @@ export default function LandingPompeAChaleur() {
               className="group mt-6 flex items-center gap-4 rounded-2xl border border-[#e6e6e6] bg-white p-3 pr-5 transition-colors hover:border-[#22282b]"
             >
               <span className="flex shrink-0 -space-x-3">
-                {PAC_REALISATIONS.filter((r) => !r.video).slice(0, 3).map((r) => (
+                {PAC_REALISATIONS.slice(0, 4).filter((r) => r.featured || !r.video).slice(0, 3).map((r) => (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     key={r.src}
-                    src={r.src}
+                    src={r.video ? r.poster : r.src}
                     alt=""
                     className="h-14 w-14 rounded-xl border-2 border-white object-cover"
                   />

@@ -48,18 +48,20 @@ export function PacRealisations({
             type="button"
             onClick={() => setOpen(i)}
             data-cursor="hover"
-            className={`group relative aspect-[3/4] overflow-hidden rounded-2xl border text-left ${card}`}
+            className={`group relative aspect-[3/4] overflow-hidden rounded-2xl border text-left ${card} ${
+              r.featured ? "col-span-2 aspect-[4/5] md:row-span-2 md:aspect-auto" : ""
+            }`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={r.video ? r.poster : r.src}
               alt={`${r.title} — ${r.caption}`}
               loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-transparent" />
             {r.video && (
-              <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#22282b] shadow-lg transition-transform group-hover:scale-110">
+              <span className={`absolute left-1/2 top-1/2 flex ${r.featured ? "h-20 w-20" : "h-14 w-14"} -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#22282b] shadow-lg transition-transform group-hover:scale-110`}>
                 <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
                   <path d="M8 5v14l11-7z" fill="currentColor" />
                 </svg>
@@ -70,7 +72,12 @@ export function PacRealisations({
                 {r.brand}
                 {r.video ? " · Vidéo" : ""}
               </span>
-              <p className="mt-0.5 text-sm font-medium leading-snug text-white">{r.title}</p>
+              <p className={`mt-0.5 font-medium leading-snug text-white ${r.featured ? "text-lg md:text-2xl" : "text-sm"}`}>
+                {r.title}
+              </p>
+              {r.featured && (
+                <p className="mt-1 hidden max-w-md text-sm text-white/80 md:block">{r.caption}</p>
+              )}
             </div>
           </button>
         ))}

@@ -85,9 +85,20 @@ export type PacRealisation = {
   /** Vidéo : `src` pointe vers le .mp4, `poster` vers l'image d'aperçu. */
   video?: boolean;
   poster?: string;
+  /** Mise en avant : grande vignette en tête de galerie. */
+  featured?: boolean;
 };
 
 export const PAC_REALISATIONS: PacRealisation[] = [
+  {
+    title: "Installation complète air/eau",
+    caption: "Module hydraulique, ballon d'eau chaude, vases d'expansion et groupe extérieur : le tour d'un chantier terminé.",
+    brand: "Air/eau",
+    src: "/realisations/pac/installation-complete.mp4",
+    poster: "/realisations/pac/installation-complete-poster.jpg",
+    video: true,
+    featured: true,
+  },
   {
     title: "PAC York 30 kW",
     caption: "Visite d'un chantier : groupe extérieur posé sur dalle béton.",
