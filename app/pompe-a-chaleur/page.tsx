@@ -3,6 +3,8 @@ import { SITE, LEGAL } from "@/lib/site";
 import { Tracking } from "@/components/landing/Tracking";
 import { LeadForm } from "@/components/landing/LeadForm";
 import { BoutiqueTheme } from "@/components/boutique/BoutiqueTheme";
+import { PacRealisations } from "@/components/landing/PacRealisations";
+import { PAC_REALISATIONS } from "@/content/realisations";
 
 const LP_URL = `${SITE.url}/pompe-a-chaleur`;
 const AIDES = "8 000 €";
@@ -95,9 +97,14 @@ export default function LandingPompeAChaleur() {
       <header className="sticky top-0 z-40 border-b border-[#ececec] bg-white/95 backdrop-blur-sm">
         <div className={`${WRAP} flex h-16 items-center justify-between`}>
           <LogoMark />
-          <a href="#devis" className="rounded-full bg-[#22282b] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-black">
-            Je demande un devis
-          </a>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <a href="#realisations" className="rounded-full border border-[#dcdcdc] px-3.5 py-2.5 text-sm font-medium text-[#22282b] transition-colors hover:border-[#22282b] sm:px-5">
+              Réalisations
+            </a>
+            <a href="#devis" className="hidden rounded-full bg-[#22282b] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-black sm:inline-flex">
+              Je demande un devis
+            </a>
+          </div>
         </div>
       </header>
 
@@ -128,6 +135,33 @@ export default function LandingPompeAChaleur() {
               et eau chaude, plus d&apos;économies, une exécution irréprochable et un
               accompagnement de A à Z.
             </p>
+
+            {/* Aperçu des réalisations — visible dès l'arrivée */}
+            <a
+              href="#realisations"
+              className="group mt-6 flex items-center gap-4 rounded-2xl border border-[#e6e6e6] bg-white p-3 pr-5 transition-colors hover:border-[#22282b]"
+            >
+              <span className="flex shrink-0 -space-x-3">
+                {PAC_REALISATIONS.filter((r) => !r.video).slice(0, 3).map((r) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={r.src}
+                    src={r.src}
+                    alt=""
+                    className="h-14 w-14 rounded-xl border-2 border-white object-cover"
+                  />
+                ))}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-base font-semibold text-[#22282b]">
+                  Voir nos réalisations
+                </span>
+                <span className="block text-sm text-[#6b7177]">
+                  Photos et vidéos de nos chantiers PAC air/eau
+                </span>
+              </span>
+              <span className="ml-auto text-xl text-[#9a7b2b] transition-transform group-hover:translate-x-1">→</span>
+            </a>
 
             <p className="mt-7 text-3xl font-bold text-[#9a7b2b] md:text-4xl">
               Jusqu&apos;à {AIDES} d&apos;aides<span className="align-super text-lg">*</span>
@@ -161,6 +195,27 @@ export default function LandingPompeAChaleur() {
                 secondaryField={{ name: "chauffage", placeholder: "Chauffage actuel", options: ["Fioul", "Gaz", "Électrique", "Pompe à chaleur", "Autre"] }}
               />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Réalisations */}
+      <section id="realisations" className="scroll-mt-20 border-t border-[#ececec] py-16 md:py-20">
+        <div className={WRAP}>
+          <h2 className="text-center text-3xl font-semibold text-[#22282b] md:text-4xl">
+            Nos réalisations
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-center text-base text-[#6b7177]">
+            Des pompes à chaleur air/eau posées par nos équipes. Touchez une photo
+            ou une vidéo pour l&apos;agrandir.
+          </p>
+          <div className="mt-10">
+            <PacRealisations items={PAC_REALISATIONS} />
+          </div>
+          <div className="mt-10 flex justify-center">
+            <a href="#devis" className="rounded-full bg-[#22282b] px-8 py-4 text-base font-medium text-white transition-colors hover:bg-black">
+              Je veux le même chez moi
+            </a>
           </div>
         </div>
       </section>

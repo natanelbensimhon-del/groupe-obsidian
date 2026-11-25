@@ -74,3 +74,72 @@ export const REALISATIONS: Realisation[] = [
     kind: "Extérieure",
   },
 ];
+
+// Réalisations pompe à chaleur air/eau — photos et vidéos de chantiers.
+// Fichiers dans /public/realisations/pac/.
+export type PacRealisation = {
+  title: string;
+  caption: string;
+  brand: string;
+  src: string;
+  /** Vidéo : `src` pointe vers le .mp4, `poster` vers l'image d'aperçu. */
+  video?: boolean;
+  poster?: string;
+};
+
+export const PAC_REALISATIONS: PacRealisation[] = [
+  {
+    title: "PAC York 30 kW",
+    caption: "Visite d'un chantier : groupe extérieur posé sur dalle béton.",
+    brand: "York",
+    src: "/realisations/pac/york-30kw-installation.mp4",
+    poster: "/realisations/pac/york-30kw-installation-poster.jpg",
+    video: true,
+  },
+  {
+    title: "PAC De Dietrich 27 kW",
+    caption: "Installation terminée, présentation du chantier.",
+    brand: "De Dietrich",
+    src: "/realisations/pac/de-dietrich-27kw-installation.mp4",
+    poster: "/realisations/pac/de-dietrich-27kw-installation-poster.jpg",
+    video: true,
+  },
+  {
+    title: "Groupe extérieur York",
+    caption: "PAC air/eau sur dalle béton et plots antivibratiles, liaisons sous goulotte.",
+    brand: "York",
+    src: "/realisations/pac/york-exterieur-dalle.jpg",
+  },
+  {
+    title: "Module hydraulique Atlantic",
+    caption: "Module intérieur en chaufferie, vase d'expansion et ballon, réseau calorifugé.",
+    brand: "Atlantic",
+    src: "/realisations/pac/atlantic-module-hydraulique.jpg",
+  },
+  {
+    title: "Groupe extérieur Atlantic",
+    caption: "Unité extérieure posée sur terrasse, plots antivibratiles et interrupteur de proximité.",
+    brand: "Atlantic",
+    src: "/realisations/pac/atlantic-fujitsu-terrasse.jpg",
+  },
+  {
+    title: "Groupe extérieur Ariston",
+    caption: "PAC air/eau double ventilateur, pose sur plots en façade.",
+    brand: "Ariston",
+    src: "/realisations/pac/ariston-exterieur.jpg",
+  },
+  {
+    title: "Raccordements brasés",
+    caption: "Brasure des raccordements cuivre, en atelier de chantier.",
+    brand: "Thaleos",
+    src: "/realisations/pac/thaleos-brasure.mp4",
+    poster: "/realisations/pac/thaleos-brasure-poster.jpg",
+    video: true,
+  },
+  {
+    title: "PAC air/eau monobloc",
+    caption: "Groupe extérieur en patio, sur plots antivibratiles.",
+    brand: "Air/eau",
+    src: "/realisations/pac/monobloc-terrasse.jpg",
+  },
+];
