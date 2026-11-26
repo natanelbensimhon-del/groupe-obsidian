@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { HomeHero } from "@/components/sections/HomeHero";
 import { ClimatisationFeature } from "@/components/sections/ClimatisationFeature";
+import { GoogleReviews } from "@/components/sections/GoogleReviews";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ExpertiseCard } from "@/components/ui/ExpertiseCard";
 import { Reveal } from "@/components/ui/Reveal";
@@ -102,6 +103,9 @@ export default function HomePage() {
   return (
     <>
       <HomeHero />
+
+      {/* Avis Google — preuve sociale dès la première page */}
+      <GoogleReviews />
 
       {/* Climatisation réversible — mise en avant principale */}
       <ClimatisationFeature />

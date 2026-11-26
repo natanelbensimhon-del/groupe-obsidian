@@ -212,9 +212,12 @@ export default function LandingPompeAChaleur() {
           <div className="mt-10">
             <PacRealisations items={PAC_REALISATIONS} />
           </div>
-          <div className="mt-10 flex justify-center">
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
             <a href="#devis" className="rounded-full bg-[#22282b] px-8 py-4 text-base font-medium text-white transition-colors hover:bg-black">
               Je veux le même chez moi
+            </a>
+            <a href="/realisations#air-air" className="rounded-full border border-[#dcdcdc] px-8 py-4 text-base font-medium text-[#22282b] transition-colors hover:border-[#22282b]">
+              Voir aussi nos PAC air/air
             </a>
           </div>
         </div>

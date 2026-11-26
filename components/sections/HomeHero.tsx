@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { PuzzleHero } from "@/components/puzzle/PuzzleHero";
 import { ProfileSelector } from "@/components/sections/ProfileSelector";
+import { AVIS_GOOGLE } from "@/content/avis";
 
 const container = {
   hidden: {},
@@ -69,6 +70,25 @@ export function HomeHero() {
             <Link href="/pompe-a-chaleur" className="btn-ghost" data-cursor="hover">
               Pompe à chaleur air/eau
             </Link>
+            <Link href="/climatisation" className="btn-ghost" data-cursor="hover">
+              Pompe à chaleur air/air
+            </Link>
+            <Link href="/realisations" className="btn-ghost" data-cursor="hover">
+              Nos réalisations
+            </Link>
+          </motion.div>
+          <motion.div variants={item} className="mt-6 flex justify-center">
+            <a
+              href="#avis"
+              data-cursor="hover"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-ash-200 transition-colors hover:border-white/25"
+            >
+              <span className="font-semibold text-ash-100">
+                {AVIS_GOOGLE.note.toFixed(1).replace(".", ",")}
+              </span>
+              <span className="text-[#FBBC04]" aria-hidden>★★★★★</span>
+              <span>{AVIS_GOOGLE.total} avis Google</span>
+            </a>
           </motion.div>
         </motion.div>
 

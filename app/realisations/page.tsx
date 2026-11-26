@@ -42,8 +42,12 @@ export default function RealisationsPage() {
         </div>
       </section>
 
-      <section className="pb-16 md:pb-20">
+      <section id="air-eau" className="scroll-mt-24 pb-16 md:pb-20">
         <div className="shell">
+          <div className="mb-8 flex flex-wrap gap-3">
+            <a href="#air-eau" className="btn-primary">Pompe à chaleur air/eau</a>
+            <a href="#air-air" className="btn-ghost">Pompe à chaleur air/air</a>
+          </div>
           <h2 className="mb-8 font-display text-2xl font-semibold text-ash-100 md:text-3xl">
             Pompe à chaleur air/eau
           </h2>
@@ -51,10 +55,10 @@ export default function RealisationsPage() {
         </div>
       </section>
 
-      <section className="pb-20 md:pb-28">
+      <section id="air-air" className="scroll-mt-24 pb-20 md:pb-28">
         <div className="shell">
           <h2 className="mb-8 font-display text-2xl font-semibold text-ash-100 md:text-3xl">
-            Climatisation réversible
+            Pompe à chaleur air/air (climatisation réversible)
           </h2>
           <Gallery items={REALISATIONS} />
           <p className="mt-8 max-w-2xl text-xs leading-relaxed text-ash-400">
